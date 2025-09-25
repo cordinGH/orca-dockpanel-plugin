@@ -1,0 +1,55 @@
+/* 分屏挂起插件样式文件 */
+/* 深色主题适配 */
+@media (prefers-color-scheme: dark) {
+  :root{
+    --my-color-bg-1: #fff;
+  }
+}
+@media (prefers-color-scheme: light) {
+  :root{
+    --my-color-bg-1: #000;
+  }
+}
+
+.has-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
+  position:absolute;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  top:0;
+  left:0;
+  overflow:hidden;
+  z-index:30;
+  background-color: var(--orca-color-bg-1); /* 使用主题色 */
+  border-right: 2px solid var(--orca-color-primary-5);
+  /* border-top-right-radius:4px;
+  border-bottom-right-radius:4px; */
+  box-shadow: var(--orca-shadow-menu);
+  width: min(80%, 835px);
+  height:100%;
+  transform-origin:left top;
+  transition:
+    translate .2s ease-out,
+    width .2s ease-out,
+    height .2s ease-out,
+    background-color .2s ease-out,
+    scale .2s ease-out;
+  &>.orca-hideable{
+    transition:opacity .2s ease-out;
+  }
+  &>.resizer,&>.orca-panel-overlay{
+    display:none;
+  }
+}
+
+
+.has-docked-panel.collapsed-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
+  translate: -2px 2.5rem;
+  scale:.02 .03;
+  background-color: #D9D9D9;
+  background-color: #00000020;
+  background-color: rgb(from var(--orca-color-primary-2) r g b / .1);
+  &>.orca-hideable{
+    opacity:0;
+    pointer-events:none;
+  }
+}
