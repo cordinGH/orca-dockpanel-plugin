@@ -5,7 +5,7 @@
 
 ## 安装
 
-前往本仓库的 [Releases](https://github.com/cordinGH/orca-dockedpanel-plugin/releases) 页面。
+前往本仓库的 [Releases](https://github.com/cordinGH/orca-dockpanel-plugin/releases) 页面。
 
 在最新版本的 "Assets" 区域，下载 `Source code(zip)` 解压，解压后复制文件夹到 `orca\plugins`。  
 **⭐️检查一下最终目录结构是否如下**：
