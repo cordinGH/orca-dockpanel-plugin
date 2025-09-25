@@ -1,5 +1,5 @@
 /**
- * 命令处理模块 (函数式版本)
+ * 命令处理模块
  * 负责注册和管理插件命令
  */
 
@@ -16,7 +16,7 @@ export async function start(name, pm) {
   // 注册插件命令
   registerCommands()
 
-  console.log(`${pluginName} 命令处理模块已启动 (函数式)`)
+  console.log(`${pluginName} 命令处理模块已启动`)
 }
 
 /**
@@ -26,7 +26,7 @@ export async function cleanup() {
   // 清理注册的命令
   cleanupCommands()
 
-  console.log(`${pluginName} 命令处理模块已清理 (函数式)`)
+  console.log(`${pluginName} 命令处理模块已清理`)
 }
 
 /**

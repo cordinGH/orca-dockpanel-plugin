@@ -1,5 +1,5 @@
 /**
- * 面板管理模块 (函数式版本)
+ * 面板管理模块
  * 负责面板的停靠、恢复和状态管理
  */
 
@@ -19,7 +19,7 @@ export async function start(name) {
   // 监听面板关闭事件
   setupPanelCloseWatcher()
   
-  console.log(`${pluginName} 面板管理模块已启动 (函数式)`)
+  console.log(`${pluginName} 面板管理模块已启动`)
 }
 
 /**
@@ -33,7 +33,7 @@ export async function cleanup() {
   if (dockedPanelID) {
     await undockPanel()
   }
-  console.log(`${pluginName} 面板管理模块已清理 (函数式)`)
+  console.log(`${pluginName} 面板管理模块已清理`)
 }
 
 /**
