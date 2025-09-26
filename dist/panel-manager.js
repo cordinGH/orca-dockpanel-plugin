@@ -6,6 +6,7 @@
 // 模块状态
 let pluginName = ""
 let dockedPanelID = null
+let isLockedBeforeCollapsed = false
 let panelCloseWatcher = null
 let isCollapsed = false
 
@@ -40,9 +41,10 @@ export async function cleanup() {
  * 停靠当前面板
  */
 export async function dockCurrentPanel() {
+  
+  // 如果只有一个面板，先在侧边打开今天的日志
   if (!orca.nav.isThereMoreThanOneViewPanel()) {
-    orca.notify("warn", "只有一个面板，无法停靠")
-    return
+    await orca.commands.invokeCommand("core.openTodayInPanel")
   }
 
   const currentPanelId = orca.state.activePanel
@@ -54,14 +56,19 @@ export async function dockCurrentPanel() {
     orca.notify("warn", "当前布局特殊，不支持停靠")
     return
   }
-  // 如果当前面板就是第一个面板，则正常移动
+  
+  // 如果当前面板不是第一个面板，则移动到第一个位置
   if (firstPanel.id !== currentPanelId) {
-    // 正常移动
     orca.nav.move(currentPanelId, firstPanel.id, "left")
   }
+  
+  // 停靠当前面板
   dockedPanelID = currentPanelId
   addDockPanelClass()
   removeCollapsedClass()
+  // 记录挂起之前的锁定状态，以便恢复
+  isLockedBeforeCollapsed = orca.nav.findViewPanel(dockedPanelID, orca.state.panels).locked === true
+  
   orca.notify("success", "面板已停靠显示")
 }
 
@@ -71,7 +78,13 @@ export async function dockCurrentPanel() {
 export async function undockPanel() {
   // 移除根容器样式类
   removeDockPanelClass()
-  // 清空停靠状态
+  
+  // 比对取消时的锁定状态，如果和原状态不一致，则切换锁定状态变成一致。
+  const isLockedNow = orca.nav.findViewPanel(dockedPanelID, orca.state.panels).locked === true
+  if (isLockedNow !== isLockedBeforeCollapsed) {
+    orca.commands.invokeCommand("core.panel.toggleLock", dockedPanelID)
+  }
+  // 清空停靠ID
   dockedPanelID = null
   orca.notify("success", "面板已取消停靠显示")
 }
@@ -91,22 +104,21 @@ export function hasDockedPanel() {
   return dockedPanelID !== null
 }
 
-// 折叠同时会锁定面板，放置被跳转
+// 折叠同时会锁定面板，防止被跳转
 export function toggleCollapsedClass() {
-  console.log(`尝试获取停靠id ${getDockedPanelID()}`)
-  const isLocked = orca.nav.findViewPanel(getDockedPanelID(), orca.state.panels).locked
   if (isCollapsed === true) {
+    // 是折叠状态，则退出折叠，并恢复锁定状态
     removeCollapsedClass()
-    console.log(`isCollapsed: ${isCollapsed}`)
-    console.log(`isLocked: ${isLocked}`)
-    if (isLocked) {
+    if (!isLockedBeforeCollapsed) {
+      console.log("收起之前为未锁定，现已恢复收起之前的锁定状态")
       orca.commands.invokeCommand("core.panel.toggleLock", dockedPanelID)
     }
   } else {
+    // 没有折叠，则进入折叠状态，并更新锁定状态
     setCollapsedClass()
-    console.log(`isCollapsed: ${isCollapsed}`)
-    console.log(`isLocked: ${isLocked}`)
-    if (!isLocked) {
+    isLockedBeforeCollapsed = orca.nav.findViewPanel(dockedPanelID, orca.state.panels).locked === true
+    console.log("已记录当前锁定状态，用于在下次退出折叠时恢复")
+    if (!isLockedBeforeCollapsed) {
       orca.commands.invokeCommand("core.panel.toggleLock", dockedPanelID)
     }
   }
@@ -148,7 +160,7 @@ function setupPanelCloseWatcher() {
     return // 已经设置过了
   }
 
-  // 监听面板关闭命令 - 使用before命令获取关闭前的状态
+  // 监听面板关闭命令 - 使用before命令获取关闭前的状态。
   orca.commands.registerBeforeCommand("core.closePanel", (cmdId, ...args) => {
     // 在命令执行前检查当前活动面板是否是停靠的面板
     if (dockedPanelID && orca.state.activePanel === dockedPanelID) {
@@ -158,7 +170,18 @@ function setupPanelCloseWatcher() {
       removeCollapsedClass()
       dockedPanelID = null
     }
-    return true // 允许命令继续执行
+    return true 
+  })
+
+  // 执行关闭后，如果只剩下停靠面板，取消停靠
+  orca.commands.registerAfterCommand("core.closePanel", (cmdId, ...args) => {
+    if (dockedPanelID && orca.state.activePanel === dockedPanelID && !orca.nav.isThereMoreThanOneViewPanel()) {
+      removeDockPanelClass()
+      removeCollapsedClass()
+      dockedPanelID = null
+      orca.notify("info", "取消停靠，因为当前只剩下停靠面板")
+    }
+    return
   })
 
   // 监听关闭其他面板命令 - 使用before命令获取关闭前的状态
@@ -186,6 +209,7 @@ function cleanupPanelCloseWatcher() {
     // 取消注册命令监听器
     orca.commands.unregisterBeforeCommand("core.closePanel")
     orca.commands.unregisterBeforeCommand("core.closeOtherPanels")
+    orca.commands.unregisterAfterCommand("core.closePanel")
     panelCloseWatcher = null
     console.log(`${pluginName} 面板关闭监听器已清理`)
   }

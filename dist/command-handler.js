@@ -7,6 +7,10 @@
 let pluginName = ""
 let panelManager = null
 
+// 快捷键常量
+const alt_q = "alt+q"
+const c_alt_q = "ctrl+alt+q"
+
 /**
  * 启动模块
  */
@@ -46,7 +50,7 @@ function registerCommands() {
         await panelManager.undockPanel()
       }
     },
-    "开启/取消当前面板的停靠(dock)"
+    "切换当前面板的停靠状态（dock）"
   )
 
   // 切换停靠面板的收起/展开状态
@@ -60,14 +64,60 @@ function registerCommands() {
         panelManager.toggleCollapsedClass()
       }
     },
-    "收起/展开停靠的面板(dock)"
+    "隐藏/弹出停靠面板（dock）"
   )
+
+  assignDefaultShortcuts()
 }
 
 /**
- * 清理注册的命令
+ * 分配默认快捷键
  */
-function cleanupCommands() {
+async function assignDefaultShortcuts() {
+  try {
+    // 等待1秒确保快捷键列表加载完毕
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // 通用快捷键分配函数
+    async function assignShortcut(shortcut, dockPanelCommand, description, keyName) {
+      const existingCommand = orca.state.shortcuts[shortcut]
+      
+      if (existingCommand && existingCommand !== dockPanelCommand) {
+        const lowerCommand = existingCommand.toLowerCase()
+        const isDockPanelCommand = (lowerCommand.includes("dock") && lowerCommand.includes("panel"))
+        
+        if (isDockPanelCommand) {
+          console.log(`${pluginName} ${keyName} 被 dock-panel其他版本占用，故覆盖分配`)
+        } else {
+          console.warn(`${pluginName} ${keyName} 已被占用: ${existingCommand}`)
+          orca.notify("warn", `默认快捷键${keyName}分配失败，请手动分配`)
+          return false
+        }
+      }
+      
+      await orca.shortcuts.assign(shortcut, dockPanelCommand)
+      orca.notify("success", `已为dock-panel插件「${description}」，分配闲置快捷键 ${keyName}`)
+      return true
+    }
+    
+    // 分配两个快捷键
+    await assignShortcut(alt_q, `${pluginName}.toggleDockedPanelCollapse`, "切换当前面板的停靠状态", "Alt+Q")
+    await assignShortcut(c_alt_q, `${pluginName}.dockCurrentPanel`, "隐藏/弹出停靠面板", "Ctrl+Alt+Q")
+    
+  } catch (error) {
+    console.warn(`${pluginName} 快捷键分配失败:`, error)
+  }
+}
+
+/**
+ * 清理注册的命令和快捷键
+ */
+async function cleanupCommands() {
+  // 清理命令
   orca.commands.unregisterCommand(`${pluginName}.dockCurrentPanel`)
   orca.commands.unregisterCommand(`${pluginName}.toggleDockedPanelCollapse`)
+  
+  // 清理快捷键 - 重置为默认状态
+  await orca.shortcuts.reset(`${pluginName}.toggleDockedPanelCollapse`)
+  await orca.shortcuts.reset(`${pluginName}.dockCurrentPanel`)
 }
