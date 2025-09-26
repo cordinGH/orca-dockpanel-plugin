@@ -69,7 +69,7 @@ export async function dockCurrentPanel() {
   // 记录挂起之前的锁定状态，以便恢复
   isLockedBeforeCollapsed = orca.nav.findViewPanel(dockedPanelID, orca.state.panels).locked === true
   
-  orca.notify("success", "面板已停靠显示")
+  // orca.notify("success", "面板已停靠显示")
 }
 
 /**
@@ -86,7 +86,7 @@ export async function undockPanel() {
   }
   // 清空停靠ID
   dockedPanelID = null
-  orca.notify("success", "面板已取消停靠显示")
+  // orca.notify("success", "面板已取消停靠显示")
 }
 
 

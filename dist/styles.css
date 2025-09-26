@@ -15,6 +15,9 @@
 .has-docked-panel{
   border-radius: inherit;
 }
+.orca-panel{
+  background-color: var(--orca-color-bg-1);
+}
 .has-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
   position:absolute;
   min-width: 0 !important;
@@ -24,19 +27,20 @@
   overflow:hidden;
   z-index:30;
   background-color: var(--orca-color-bg-1); /* 使用主题色 */
-  border: 2px solid var(--orca-color-primary-5);
+  outline: 2px solid var(--orca-color-primary-5);
   border-top-left-radius: inherit;
   border-bottom-left-radius: inherit;
   box-shadow: var(--orca-shadow-menu);
   width: min(80%, 835px);
   height:100%;
   transform-origin:left top;
-  transition:
+  transition:all .25s ease-out;
+  /* transition:
     translate .2s ease-out,
     width .2s ease-out,
     height .2s ease-out,
     background-color .2s ease-out,
-    scale .2s ease-out;
+    scale .2s ease-out; */
   &>.orca-hideable{
     transition:opacity .2s ease-out;
   }
@@ -44,7 +48,6 @@
     display:none;
   }
 }
-
 
 .has-docked-panel.collapsed-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
   translate: -2px 2.5rem;
