@@ -1,0 +1,39 @@
+.orca-panel:before{
+    font-family: tabler-icons!important;
+    speak: none;
+    font-style: normal;
+    font-weight: 400;
+    line-height:1;
+    font-variant: normal;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    content:"\f1f2";
+    position: absolute;
+    right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm));
+    font-size: var(--orca-fontsize-lg);
+    cursor:pointer;
+    z-index: var(--orca-zindex-editor-sidepanel);
+    padding: var(--orca-spacing-sm) var(--orca-spacing-2xs);
+    border-radius: var(--orca-radius-md);
+    background-color: var(--orca-color-bg-1);
+    -webkit-user-select: none;
+    user-select: none;
+    margin-top:.5rem;
+}
+
+.has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
+    content:"\f1f1";
+    color: var(--orca-color-primary-5);
+}
+
+@media (prefers-color-scheme: dark) {
+    .has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
+        background-color: var(--orca-color-gray-6);
+    }
+}
+
+.orca-panel-drag-handle, .orca-panel-drag-handle~*{
+    translate:0 2.25rem;
+}
