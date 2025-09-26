@@ -9,7 +9,7 @@ let panelManager = null
 
 // 快捷键常量
 const alt_q = "alt+q"
-const c_alt_q = "ctrl+alt+q"
+// const c_alt_q = "ctrl+alt+q"
 
 /**
  * 启动模块
@@ -102,7 +102,7 @@ async function assignDefaultShortcuts() {
     
     // 分配两个快捷键
     await assignShortcut(alt_q, `${pluginName}.toggleDockedPanelCollapse`, "切换当前面板的停靠状态", "Alt+Q")
-    await assignShortcut(c_alt_q, `${pluginName}.dockCurrentPanel`, "隐藏/弹出停靠面板", "Ctrl+Alt+Q")
+    // await assignShortcut(c_alt_q, `${pluginName}.dockCurrentPanel`, "隐藏/弹出停靠面板", "Ctrl+Alt+Q")
     
   } catch (error) {
     console.warn(`${pluginName} 快捷键分配失败:`, error)
@@ -119,5 +119,5 @@ async function cleanupCommands() {
   
   // 清理快捷键 - 重置为默认状态
   await orca.shortcuts.reset(`${pluginName}.toggleDockedPanelCollapse`)
-  await orca.shortcuts.reset(`${pluginName}.dockCurrentPanel`)
+  // await orca.shortcuts.reset(`${pluginName}.dockCurrentPanel`)
 }
