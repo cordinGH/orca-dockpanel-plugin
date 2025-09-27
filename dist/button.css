@@ -28,12 +28,6 @@
     color: var(--orca-color-primary-5);
 }
 
-@media (prefers-color-scheme: dark) {
-    .has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
-        background-color: var(--orca-color-gray-6);
-    }
-}
-
 .orca-panel-drag-handle, .orca-panel-drag-handle~*{
     translate:0 2.25rem;
 }
