@@ -46,8 +46,8 @@ orca-dockpanel-plugin/
 >     - 如果当前就在停靠面板，则会取消停靠恢复原样。
 >     - 如果当前不在停靠面板，则当前面板会顶替为新停靠。
 
-## 简单演示
+## 简单演示（v1.1.0）
 
-https://github.com/user-attachments/assets/a913d935-0daf-465b-b395-d1c20b2a07bc
+https://github.com/user-attachments/assets/c40e1a86-d437-47aa-989c-bb86d83e18f0
 
 
