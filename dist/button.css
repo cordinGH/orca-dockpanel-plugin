@@ -26,6 +26,8 @@
 .has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
     content:"\f1f1";
     color: var(--orca-color-primary-5);
+    /* 2px为挂起后panelpadding */
+    right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm) + 2px);
 }
 
 .orca-panel-drag-handle, .orca-panel-drag-handle~*{
