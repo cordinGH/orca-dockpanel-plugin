@@ -1,67 +1,260 @@
 import * as panelManager from './panel-manager.js'
 import * as commandHandler from './command-handler.js'
+let pluginName = "orca-dockpanel"
+let leftClickHandler = null
+let rightClickHandler = null
 
-let pluginName = "panel-suspend"
+// 记录 main 元素的 padding 值
+let mainElementPaddings = {
+  top: 0,
+  bottom: 0,
+  left: 0
+}
+
+/**
+ * 记录 main 元素的 padding 值
+ */
+async function recordMainElementPaddings() {
+  try {
+    // 等待所有插件加载完毕
+    await waitForEnabledPluginsLoaded()
+    // 额外等待一点时间确保 CSS 样式已应用
+    await new Promise(resolve => setTimeout(resolve, 200))
+
+    const mainElement = document.getElementById('main')
+    if (mainElement) {
+      const styles = window.getComputedStyle(mainElement)
+      mainElementPaddings = {
+        top: parseFloat(styles.paddingTop) || 0,
+        bottom: parseFloat(styles.paddingBottom) || 0,
+        left: parseFloat(styles.paddingLeft) || 0
+      }
+      console.log(`${pluginName} main 元素 padding 值已记录:`, mainElementPaddings)
+
+      // 设置 CSS 变量供样式使用
+      setDockedPanelPosition()
+    } else {
+      console.warn(`${pluginName} 未找到 id="main" 的元素`)
+    }
+  } catch (error) {
+    console.error(`${pluginName} 记录 main 元素 padding 值失败:`, error)
+  }
+}
+
+/**
+ * 等待所有已启用的插件加载完毕（使用 valtio 订阅）
+ */
+async function waitForEnabledPluginsLoaded() {
+  return new Promise((resolve) => {
+    // 重写resolve函数，确保清理资源
+    const originalResolve = resolve
+    let unsubscribe = null
+
+    resolve = () => {
+      if (unsubscribe) unsubscribe()
+      originalResolve()
+    }
+
+    // 设置超时保护（5秒）
+    const timeoutId = setTimeout(() => {
+      console.log(`${pluginName} 插件加载检查超时，继续执行`)
+      resolve()
+    }, 5000)
+
+    // 检查插件状态的函数
+    const checkPlugins = () => {
+      const { plugins } = orca.state
+      // 直接获取有效的插件条目，过滤出存在有效plugin的条目
+      const validPluginEntries = Object.entries(plugins).filter(([, plugin]) => plugin)
+      if (validPluginEntries.length === 0) return
+      // 获取已启用的插件和还在没加载好的插件
+      const enabledPluginEntries = validPluginEntries.filter(([, plugin]) => plugin.enabled)
+      const loadingPluginEntries = enabledPluginEntries.filter(([, plugin]) => !plugin.module)
+
+      // 如果没有插件在加载，就认为加载完成
+      if (loadingPluginEntries.length === 0) {
+        console.log(`${pluginName} 插件加载完毕，已启用插件数量: ${enabledPluginEntries.length}`, enabledPluginEntries)
+        clearTimeout(timeoutId)
+        resolve()
+      }
+    }
+
+    // 使用 valtio 订阅插件状态变化
+    if (window.Valtio && window.Valtio.subscribe) {
+      unsubscribe = window.Valtio.subscribe(orca.state.plugins, checkPlugins)
+      // 立即检查一次，防止创建订阅之前就已经加载完成
+      checkPlugins()
+    } else {
+      // 如果 valtio 不可用，记录警告
+      console.warn(`${pluginName} valtio 不可用，插件状态检查可能不准确`)
+    }
+  })
+}
+
+
+/**
+ * 设置停靠面板的位置 CSS 变量
+ */
+function setDockedPanelPosition() {
+  try {
+    const root = document.documentElement
+    // 使用 padding 的 top 值作为 left，padding 的 left 值作为 right
+    root.style.setProperty('--docked-panel-base-top', `${mainElementPaddings.top}px`)
+    root.style.setProperty('--docked-panel-base-left', `${mainElementPaddings.left}px`)
+    root.style.setProperty('--docked-panel-base-bottom', `${mainElementPaddings.bottom}px`)
+    console.log(`${pluginName} 停靠面板基础位置已设置`)
+  } catch (error) {
+    console.error(`${pluginName} 设置停靠面板位置失败:`, error)
+  }
+}
+
 
 export async function load(name) {
   pluginName = name
   console.log(`${pluginName} 插件已加载`)
-  
+
   // 注入CSS
   orca.themes.injectCSSResource(`${pluginName}/dist/styles.css`, pluginName)
   orca.themes.injectCSSResource(`${pluginName}/dist/button.css`, pluginName)
-  
+
+  await registerSettings()
+
   // 启动模块
-  await panelManager.start(pluginName)
+  await panelManager.start(pluginName, getDefaultBlockId())
   await commandHandler.start(pluginName, panelManager)
-  document.addEventListener('click', handleDockButtonClick)
+
+  // 设置左键和右键的监听
+  leftClickHandler = (e) => handleDockButtonClick(e, `${pluginName}.dockCurrentPanel`)
+  rightClickHandler = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // 如果是点击折叠面板，不需要约束点击按钮区域 ，直接弹出面板
+    const collapsedPanel = document.querySelector('.has-docked-panel.collapsed-docked-panel > .orca-panel:nth-child(1 of .orca-panel)')
+    if (collapsedPanel && collapsedPanel.contains(e.target)) {
+      orca.commands.invokeCommand(`${pluginName}.toggleDockedPanelCollapse`)
+      return
+    }
+
+    handleDockButtonClick(e, `${pluginName}.toggleDockedPanelCollapse`)
+  }
+  document.addEventListener('click', leftClickHandler)
+  document.addEventListener('contextmenu', rightClickHandler)
+
+  // 记录main元素的padding作为挂起面板的基准定位。
+  recordMainElementPaddings()
 }
 
 export async function unload() {
   console.log(`${pluginName} 插件已卸载`)
-  
+
   // 移除CSS
   orca.themes.removeCSSResources(pluginName)
-  
+
+  // 清理设置模式（可选，unregister 会自动清理）
+  try {
+    await orca.plugins.setSettingsSchema(pluginName, {})
+    console.log(`${pluginName} 设置模式已清理`)
+  } catch (error) {
+    console.log(`${pluginName} 设置模式清理失败:`, error)
+  }
+
   // 清理各个模块
   await commandHandler.cleanup()
   await panelManager.cleanup()
-  document.removeEventListener('click', handleDockButtonClick)
+  document.removeEventListener('click', leftClickHandler)
+  document.removeEventListener('contextmenu', rightClickHandler)
+  
+  // 清理按钮区域缓存
+  panelButtonCache.clear()
 }
+
 
 
 
 /**
  * 处理停靠面板按钮点击事件
  */
-async function handleDockButtonClick(e) {
+const panelButtonCache = new Map()
+async function handleDockButtonClick(e, command) {
   const target = e.target
   if (!target?.classList.contains("orca-panel")) return
 
-  const rect = target.getBoundingClientRect()
-  const styles = window.getComputedStyle(target)
-  const fontSize = parseFloat(styles.fontSize)
+  // 只获取一次按钮区域信息
+  let buttonArea = panelButtonCache.get(target)
+  if (!buttonArea) {
+    const rect = target.getBoundingClientRect()
+    const styles = window.getComputedStyle(target)
+    const fontSize = parseFloat(styles.fontSize)
 
-  // 计算按钮区域（右上角 24x24px，距离边缘 8px）
-  const buttonWidth = (1.125 + 0.0625 * 2) * fontSize  // 1.25rem = 20px
-  const buttonHeight = (1.125 + 0.3 * 2) * fontSize    // 1.725rem = 27.6px ≈ 28px
-  const buttonMarginRight = 1.3 * fontSize  // 距离右边 1.3 个字体大小
-  const buttonMarginTop = 0.5 * fontSize
-  const buttonX = rect.width - buttonMarginRight - buttonWidth
-  const buttonY = buttonMarginTop
+    // 计算按钮区域，单位rem
+    const buttonWidth = (1.125 + 0.0625 * 2) * fontSize
+    const buttonHeight = (1.125 + 0.3 * 2) * fontSize
+    const buttonMarginRight = 1.3 * fontSize
+    const buttonMarginTop = 0.5 * fontSize
+    
+    buttonArea = {
+      buttonXStart: rect.width - buttonMarginRight - buttonWidth,
+      buttonYStart: buttonMarginTop,
+      buttonWidth: buttonWidth,
+      buttonHeight: buttonHeight
+    }
+    
+    // 缓存计算结果
+    panelButtonCache.set(target, buttonArea)
+  }
 
   // 获取点击位置相对于面板左边和上边的距离
+  const rect = target.getBoundingClientRect()
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
 
   // 检查点击是否在按钮区域内
-  if (x < buttonX || x > buttonX + buttonWidth ||
-      y < buttonY || y > buttonY + buttonHeight) {
-      return
+  if (x < buttonArea.buttonXStart || x > buttonArea.buttonXStart + buttonArea.buttonWidth ||
+    y < buttonArea.buttonYStart || y > buttonArea.buttonYStart + buttonArea.buttonHeight) {
+    return
   }
+  
   // 获取面板ID
   const panelId = target.dataset.panelId
   if (!panelId) return
 
-  orca.commands.invokeCommand(`${pluginName}.dockCurrentPanel`)
+  // 阻止事件冒泡
+  e.stopPropagation()
+  
+  orca.commands.invokeCommand(command)
+}
+
+
+
+/**
+ * 注册设置模式
+ */
+async function registerSettings() {
+  const settingsSchema = {
+    defaultBlockId: {
+      label: "默认块ID",
+      description: "单屏时，点击停靠按钮会默认停靠今日日志。可指定一个默认块替代日志。例如填写 1 ",
+      type: "string",
+      defaultValue: "",
+    }
+  }
+
+  await orca.plugins.setSettingsSchema(pluginName, settingsSchema)
+  console.log(`${pluginName} 设置界面已加载，当前默认块id：${getDefaultBlockId()}`)
+}
+
+/**
+ * 获取设置值
+ */
+export function getSettings() {
+  return orca.state.plugins[pluginName]?.settings || {}
+}
+
+/**
+ * 获取默认块ID
+ */
+export function getDefaultBlockId() {
+  const settings = getSettings()
+  return settings.defaultBlockId || ""
 }

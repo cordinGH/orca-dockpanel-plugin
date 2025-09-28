@@ -10,16 +10,21 @@ let isLockedBeforeCollapsed = false
 let panelCloseWatcher = null
 let isCollapsed = false
 
+let defaultBlockId = ""
+
 /**
  * 启动模块
  */
-export async function start(name) {
+
+export async function start(name, blockId) {
   pluginName = name
   dockedPanelID = null
   isCollapsed = false
   // 监听面板关闭事件
   setupPanelCloseWatcher()
   
+  defaultBlockId = blockId
+
   console.log(`${pluginName} 面板管理模块已启动`)
 }
 
@@ -44,7 +49,33 @@ export async function dockCurrentPanel() {
   
   // 如果只有一个面板，先在侧边打开今天的日志
   if (!orca.nav.isThereMoreThanOneViewPanel()) {
-    await orca.commands.invokeCommand("core.openTodayInPanel")
+    // await orca.commands.invokeCommand("core.openTodayInPanel")
+    // await orca.commands.invokeEditorCommand("core.editor.openOnTheSide", null, "544")
+    console.log(`面板管理器的defaultBlockId：${defaultBlockId}`)
+    
+    // 如果有默认块ID，直接在侧边打开该块，统一采用openInLastPanel API，更为流畅
+    if (defaultBlockId && defaultBlockId.trim() !== "") {  
+      try {
+        // 强制加载指定块
+        const block = await orca.invokeBackend("get-block", defaultBlockId)
+        if (block && !block.deleted) {
+          // 直接在侧边打开指定块
+          await orca.nav.openInLastPanel("block", { blockId: defaultBlockId })
+        } else {
+          orca.notify("warn", `块ID ${defaultBlockId} 已被删除，使用默认的今日日志`, pluginName)
+          await orca.commands.invokeCommand("core.openTodayInPanel")
+        }
+      } catch (error) {
+        orca.notify("warn", `块ID ${defaultBlockId} 不存在，使用默认的今日日志`, pluginName)
+        // await orca.commands.invokeCommand("core.openTodayInPanel")
+        await orca.nav.openInLastPanel("journal", { date: new Date() })
+      }
+    } else {
+      // 没有设置块ID，使用今日日志
+      // await orca.commands.invokeCommand("core.openTodayInPanel")
+      await orca.nav.openInLastPanel("journal", { date: new Date() })
+    }
+    
   }
 
   const currentPanelId = orca.state.activePanel
@@ -52,7 +83,7 @@ export async function dockCurrentPanel() {
   const numberOfLevel1Panel = orca.state.panels.children.length
 
   // 当根row的只有一个colChild且col内只有2个普通面板，禁止停靠，因为会破坏结构
-  if (numberOfLevel1Panel === 1 && firstPanel.children.length === 2 && firstPanel.children.every(child => child.view)) {
+  if (numberOfLevel1Panel === 1 && firstPanel.children && firstPanel.children.length === 2 && firstPanel.children.every(child => child.view)) {
     orca.notify("warn", "当前布局特殊，不支持停靠")
     return
   }

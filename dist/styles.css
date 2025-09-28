@@ -1,13 +1,24 @@
-/* dockpanel插件样式文件 */
-/* 深色主题适配 */
+:root{
+  --box-shadow-color: rgb(from var(--orca-color-bg-1)  max(calc(r - 38), calc(38 - r)) max(calc(g - 38), calc(38 - g)) max(calc(b - 38), calc(38 - b)) / 1)
+}
 @media (prefers-color-scheme: dark) {
   :root{
-    --my-color-bg-1: #fff;
+    --my-color-bg-1: #fff;;
+    --dockpanel-collapsed-bg: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.08) 0%, 
+      rgba(255, 255, 255, 0.03) 100%);
+    --background-color: rgb(from var(--orca-color-bg-1) r g b / .995);
   }
 }
+
 @media (prefers-color-scheme: light) {
   :root{
     --my-color-bg-1: #000;
+    --dockpanel-collapsed-bg: #f8f8f8;
+    --background-color: rgb(from var(--orca-color-bg-1) r g b / .975);
+    --dockpanel-collapsed-bg: linear-gradient(135deg, 
+  rgba(0, 0, 0, 0.03) 0%, 
+  rgba(0, 0, 0, 0.08) 100%);
   }
 }
 
@@ -15,48 +26,65 @@
 .has-docked-panel{
   border-radius: inherit;
 }
+
 .orca-panel{
   background-color: var(--orca-color-bg-1);
 }
+
 .has-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
-  position:absolute;
+  position: absolute;
   min-width: 0 !important;
   min-height: 0 !important;
-  top:0;
-  left:0;
-  overflow:hidden;
-  z-index:30;
-  background-color: var(--orca-color-bg-1); /* 使用主题色 */
-  outline: 2px solid var(--orca-color-primary-5);
-  border-top-left-radius: inherit;
-  border-bottom-left-radius: inherit;
-  box-shadow: var(--orca-shadow-menu);
-  width: min(80%, 835px);
-  height:100%;
-  transform-origin:left top;
-  transition:all .25s ease-out;
-  /* transition:
-    translate .2s ease-out,
-    width .2s ease-out,
-    height .2s ease-out,
-    background-color .2s ease-out,
-    scale .2s ease-out; */
+  /* 距离祖父容器main始终保持固定距离 */
+  top: calc(.3125rem - var(--docked-panel-base-top));
+  left: calc(.3125rem - var(--docked-panel-base-left));
+  bottom: calc(.3125rem - var(--docked-panel-base-bottom));
+  /* 839为当前padding下，内容不被压缩的最小尺寸 */
+  padding:2px 2px 2px 0px;
+  width: min(80%, 839px);
+  height: auto;
+  border-radius: inherit;
+  border: var(--orca-border-general);
+  box-shadow: 1rem .375rem 2rem -1rem var(--box-shadow-color);
+  overflow: hidden;
+  z-index: 30;
+  transform-origin: left top;
+  transition: all 0.2s ease-out;
+  background-color: var(--background-color);
+  backdrop-filter: blur(7px);
+
   &>.orca-hideable{
-    transition:opacity .2s ease-out;
+    transition: opacity 0.2s ease-out;
   }
-  &>.resizer,&>.orca-panel-overlay{
-    display:none;
+  
+  /* 隐藏尺寸调节器和判定拖放行为的覆盖层 */
+  &>.resizer, &>.orca-panel-overlay{
+    display: none;
+  }
+  
+  /* 悬停效果边框变色，缩小阴影*/
+  &:hover {
+    border-color: var(--orca-color-primary-5);
+    box-shadow: .75rem 0 .75rem -.75rem var(--box-shadow-color);
   }
 }
 
+/* 折叠状态 - 扁平化设计 */
 .has-docked-panel.collapsed-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
-  translate: -2px 2.5rem;
-  scale:.02 .03;
-  background-color: #D9D9D9;
-  background-color: #00000020;
-  background-color: rgb(from var(--orca-color-primary-2) r g b / .1);
+  translate: -.375rem 2.5rem;
+  scale: 0.02 0.03;
+  
+  /* 折叠时渐变背景提一点点质感 */
+  background: var(--dockpanel-collapsed-bg);
+  
   &>.orca-hideable{
-    opacity:0;
-    pointer-events:none;
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  /* 折叠时的悬停效果（减少干扰） */
+  &:hover {
+    /* border-color: var(--orca-color-primary-5); */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   }
 }
