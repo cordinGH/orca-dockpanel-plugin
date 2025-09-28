@@ -164,9 +164,6 @@ export async function unload() {
   await panelManager.cleanup()
   document.removeEventListener('click', leftClickHandler)
   document.removeEventListener('contextmenu', rightClickHandler)
-  
-  // 清理按钮区域缓存
-  panelButtonCache.clear()
 }
 
 
@@ -175,43 +172,30 @@ export async function unload() {
 /**
  * 处理停靠面板按钮点击事件
  */
-const panelButtonCache = new Map()
 async function handleDockButtonClick(e, command) {
   const target = e.target
   if (!target?.classList.contains("orca-panel")) return
 
-  // 只获取一次按钮区域信息
-  let buttonArea = panelButtonCache.get(target)
-  if (!buttonArea) {
-    const rect = target.getBoundingClientRect()
-    const styles = window.getComputedStyle(target)
-    const fontSize = parseFloat(styles.fontSize)
+  // 获取点按信息
+  const rect = target.getBoundingClientRect()
+  const styles = window.getComputedStyle(target)
+  const fontSize = parseFloat(styles.fontSize)
 
-    // 计算按钮区域，单位rem
-    const buttonWidth = (1.125 + 0.0625 * 2) * fontSize
-    const buttonHeight = (1.125 + 0.3 * 2) * fontSize
-    const buttonMarginRight = 1.3 * fontSize
-    const buttonMarginTop = 0.5 * fontSize
-    
-    buttonArea = {
-      buttonXStart: rect.width - buttonMarginRight - buttonWidth,
-      buttonYStart: buttonMarginTop,
-      buttonWidth: buttonWidth,
-      buttonHeight: buttonHeight
-    }
-    
-    // 缓存计算结果
-    panelButtonCache.set(target, buttonArea)
-  }
+  const buttonMarginRight = 1.3 * fontSize
+  const buttonMarginTop = 0.5 * fontSize
+  const buttonBoxWidth = (1.125 + 0.0625 * 2) * fontSize
+  const buttonBoxHeight = (1.125 + 0.3 * 2) * fontSize
+  // 计算按钮相对于面板左边和上边的起始距离
+  const buttonXStart = rect.width - buttonMarginRight - buttonBoxWidth
+  const buttonYStart = buttonMarginTop
 
   // 获取点击位置相对于面板左边和上边的距离
-  const rect = target.getBoundingClientRect()
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
 
   // 检查点击是否在按钮区域内
-  if (x < buttonArea.buttonXStart || x > buttonArea.buttonXStart + buttonArea.buttonWidth ||
-    y < buttonArea.buttonYStart || y > buttonArea.buttonYStart + buttonArea.buttonHeight) {
+  if (x < buttonXStart || x > buttonXStart + buttonBoxWidth ||
+    y < buttonYStart || y > buttonYStart + buttonBoxHeight) {
     return
   }
   
