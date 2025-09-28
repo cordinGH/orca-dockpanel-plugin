@@ -57,7 +57,7 @@
     transition: opacity 0.2s ease-out;
   }
   
-  /* 隐藏尺寸调节器和判定拖放行为的覆盖层 */
+  /* 隐藏尺寸调节器和 判定拖放行为的 覆盖层 */
   &>.resizer, &>.orca-panel-overlay{
     display: none;
   }
@@ -69,7 +69,7 @@
   }
 }
 
-/* 折叠状态 - 扁平化设计 */
+/* 折叠状态*/
 .has-docked-panel.collapsed-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
   translate: -.375rem 2.5rem;
   scale: 0.02 0.03;
@@ -82,7 +82,7 @@
     pointer-events: none;
   }
   
-  /* 折叠时的悬停效果（减少干扰） */
+  /* 折叠时的悬停效果 */
   &:hover {
     /* border-color: var(--orca-color-primary-5); */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);

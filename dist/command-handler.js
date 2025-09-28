@@ -100,9 +100,9 @@ async function assignDefaultShortcuts() {
       return true
     }
     
-    // 分配两个快捷键
-    await assignShortcut(alt_q, `${pluginName}.toggleDockedPanelCollapse`, "切换当前面板的停靠状态", "Alt+Q")
-    // await assignShortcut(c_alt_q, `${pluginName}.dockCurrentPanel`, "隐藏/弹出停靠面板", "Ctrl+Alt+Q")
+    // 分配快捷键
+    await assignShortcut(alt_q, `${pluginName}.toggleDockedPanelCollapse`, "隐藏/弹出停靠面板", "Alt+Q")
+    // await assignShortcut(c_alt_q, `${pluginName}.dockCurrentPanel`, "切换当前面板的停靠状", "Ctrl+Alt+Q")
     
   } catch (error) {
     console.warn(`${pluginName} 快捷键分配失败:`, error)
