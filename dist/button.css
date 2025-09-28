@@ -1,4 +1,4 @@
-.orca-panel:before{
+#main>.orca-panels-row .orca-panel:before{
     font-family: tabler-icons!important;
     speak: none;
     font-style: normal;
@@ -23,13 +23,13 @@
     margin-top:.5rem;
 }
 
-.has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
+#main>.orca-panels-row.has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
     content:"\f1f1";
     color: var(--orca-color-primary-5);
     /* 2px为挂起后panelpadding */
     right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm) + 2px);
 }
 
-.orca-panel-drag-handle, .orca-panel-drag-handle~*{
+#main>.orca-panels-row .orca-panel-drag-handle, .orca-panel-drag-handle~*{
     translate:0 2.25rem;
 }

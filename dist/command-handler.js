@@ -87,7 +87,7 @@ async function assignDefaultShortcuts() {
         const isDockPanelCommand = (lowerCommand.includes("dock") && lowerCommand.includes("panel"))
         
         if (isDockPanelCommand) {
-          console.log(`${pluginName} ${keyName} 被 dock-panel其他版本占用，故覆盖分配`)
+          console.log(`${pluginName} ${keyName} 被 dockpanel其他版本占用，故覆盖分配`)
         } else {
           console.warn(`${pluginName} ${keyName} 已被占用: ${existingCommand}`)
           orca.notify("warn", `默认快捷键${keyName}分配失败，请手动分配`)
@@ -96,7 +96,7 @@ async function assignDefaultShortcuts() {
       }
       
       await orca.shortcuts.assign(shortcut, dockPanelCommand)
-      orca.notify("success", `已为dock-panel插件「${description}」，分配闲置快捷键 ${keyName}`)
+      orca.notify("success", `已为dockpanel插件「${description}」，分配闲置快捷键 ${keyName}`)
       return true
     }
     
