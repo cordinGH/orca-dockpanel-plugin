@@ -35,6 +35,11 @@
 }
 
 /* —————————————————————————————————————————————————————————————— */
+/* 适配全屏的视频和pdf里按钮颜色 */
+#main>.orca-panels-row .orca-panel:has(.orca-maximized:is(.orca-video-container)):before{
+    background-color:transparent;
+    color:var(--orca-color-white);
+}
 /* 适配白板块、pdf块、视频块在全屏时，右上角按钮布局 */
 #main>.orca-panels-row .orca-panel .orca-maximized{
     &:is(.orca-whiteboard, .orca-repr-pdf-container, .orca-video-container){
