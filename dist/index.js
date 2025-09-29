@@ -8,7 +8,8 @@ let rightClickHandler = null
 let mainElementPaddings = {
   top: 0,
   bottom: 0,
-  left: 0
+  left: 0,
+  right: 0
 }
 
 /**
@@ -27,7 +28,8 @@ async function recordMainElementPaddings() {
       mainElementPaddings = {
         top: parseFloat(styles.paddingTop) || 0,
         bottom: parseFloat(styles.paddingBottom) || 0,
-        left: parseFloat(styles.paddingLeft) || 0
+        left: parseFloat(styles.paddingLeft) || 0,
+        right: parseFloat(styles.paddingRight) || 0
       }
       console.log(`${pluginName} main 元素 padding 值已记录:`, mainElementPaddings)
 
@@ -102,6 +104,7 @@ function setDockedPanelPosition() {
     root.style.setProperty('--docked-panel-base-top', `${mainElementPaddings.top}px`)
     root.style.setProperty('--docked-panel-base-left', `${mainElementPaddings.left}px`)
     root.style.setProperty('--docked-panel-base-bottom', `${mainElementPaddings.bottom}px`)
+    root.style.setProperty('--docked-panel-base-right', `${mainElementPaddings.right}px`)
     console.log(`${pluginName} 停靠面板基础位置已设置`)
   } catch (error) {
     console.error(`${pluginName} 设置停靠面板位置失败:`, error)
