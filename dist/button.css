@@ -26,7 +26,7 @@
 #main>.orca-panels-row.has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
     content:"\f1f1";
     color: var(--orca-color-primary-5);
-    /* 2px为挂起后panelpadding */
+    /* 子块orca-hidden有了2pxright，得跟随移动 */
     right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm) + 2px);
 }
 

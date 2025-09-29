@@ -39,9 +39,8 @@
   top: calc(.3125rem - var(--docked-panel-base-top));
   left: calc(.3125rem - var(--docked-panel-base-left));
   bottom: calc(.3125rem - var(--docked-panel-base-bottom));
-  /* 839为当前padding下，内容不被压缩的最小尺寸 */
-  padding:2px 2px 2px 0px;
-  width: min(80%, 839px);
+  /* 52rem刚好是子块orca-hidden的left right为2px时的，内容不被压缩的最小尺寸 */
+  width: min(80%, 52rem);
   height: auto;
   border-radius: inherit;
   border: var(--orca-border-general);
@@ -53,8 +52,15 @@
   background-color: var(--background-color);
   backdrop-filter: blur(7px);
 
+  /* 预留2px的边距，太贴边不好看了 */
   &>.orca-hideable{
     transition: opacity 0.2s ease-out;
+    width:auto;
+    height:auto;
+    top:2px;
+    bottom:2px;
+    left:2px;
+    right:2px;
   }
   
   /* 隐藏尺寸调节器和 判定拖放行为的 覆盖层 */
