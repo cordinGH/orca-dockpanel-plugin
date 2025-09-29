@@ -1,5 +1,6 @@
 :root{
-  --box-shadow-color: rgb(from var(--orca-color-bg-1)  max(calc(r - 38), calc(38 - r)) max(calc(g - 38), calc(38 - g)) max(calc(b - 38), calc(38 - b)) / 1)
+  --box-shadow-color: rgb(from var(--orca-color-bg-1)  max(calc(r - 38), calc(38 - r)) max(calc(g - 38), calc(38 - g)) max(calc(b - 38), calc(38 - b)) / 1);
+  --z-index: 51;
 }
 @media (prefers-color-scheme: dark) {
   :root{
@@ -46,21 +47,19 @@
   border: var(--orca-border-general);
   box-shadow: 1rem .375rem 2rem -1rem var(--box-shadow-color);
   overflow: hidden;
-  z-index: 30;
+  z-index: var(--z-index);
   transform-origin: left top;
   transition: all 0.2s ease-out;
   background-color: var(--background-color);
   backdrop-filter: blur(7px);
 
   /* 预留2px的边距，太贴边不好看了 */
+  /* 1.39.1版本修改了hideable定位类型，变成了相对定位，故回调padding2px */
   &>.orca-hideable{
     transition: opacity 0.2s ease-out;
     width:auto;
     height:auto;
-    top:2px;
-    bottom:2px;
-    left:2px;
-    right:2px;
+    padding: 2px;
   }
   
   /* 隐藏尺寸调节器和 判定拖放行为的 覆盖层 */

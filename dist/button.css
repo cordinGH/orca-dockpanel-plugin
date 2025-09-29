@@ -14,7 +14,7 @@
     right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm));
     font-size: var(--orca-fontsize-lg);
     cursor:pointer;
-    z-index: var(--orca-zindex-editor-sidepanel);
+    z-index: var(--z-index);
     padding: var(--orca-spacing-sm) var(--orca-spacing-2xs);
     border-radius: var(--orca-radius-md);
     background-color: var(--orca-color-bg-1);
@@ -26,8 +26,8 @@
 #main>.orca-panels-row.has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
     content:"\f1f1";
     color: var(--orca-color-primary-5);
-    /* 子块orca-hidden有了2pxright，得跟随移动 */
-    right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm) + 2px);
+    /* 子块orca-hidden有了2px right，得跟随移动 */
+    right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm));
 }
 
 #main>.orca-panels-row .orca-panel .orca-panel-drag-handle, .orca-panel-drag-handle~*{
