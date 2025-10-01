@@ -1,9 +1,23 @@
 一个用于 [Orca Note](https://github.com/sethyuan/orca-note) 的分屏挂起插件，允许用户将当前面板"挂起"，类似于安卓手机的小窗。
 可以通过快捷键切出和收起。
 
-# 使用方法
+## 版本主要变更
+- [v1.4.0](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.4.0)
+  - 新增可选设置项：折叠停靠面板时是否需要让焦点离开停靠面板
+  - 更改设置里默认ID后，会立即生效无需再重启/刷新
+- [v1.3.0](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.3.0)
+  - 对 可全屏的块（pdf、白板、视频） 做了适配，方便用来做视频笔记、pdf笔记
+- [v1.2.0](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.2.0)
+  - 按钮支持右键隐藏/弹出停靠面板（左键是 生成停靠/取消停靠；右键是 隐藏/弹出）
+  - 新增设置选项：设置单屏时默认停靠的块id
+- [v1.1.0](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.1.0)
+  - 面板右上角新增按钮，一键挂起或恢复。
+  - 单面板时，也可以挂起，会自动挂起今日日志。
+  - 如果 alt + q 是闲置的，则会作为快捷键分配给「隐藏/弹出停靠面板」
 
-## 安装
+## 使用方法
+
+### 安装
 
 前往本仓库的 [Releases](https://github.com/cordinGH/orca-dockpanel-plugin/releases) 页面。
 
@@ -31,7 +45,7 @@ orca-dockpanel-plugin/
 
 ---
 
-## 命令和快捷键
+### 命令和快捷键
 
 命令面板搜索dock
 - 1️⃣开启/取消当前面板的停靠(dock)
@@ -46,7 +60,7 @@ orca-dockpanel-plugin/
 >     - 如果当前就在停靠面板，则会取消停靠恢复原样。
 >     - 如果当前不在停靠面板，则当前面板会顶替为新停靠。
 
-## 简单演示（v1.1.0）
+### 简单演示（v1.1.0）
 
 https://github.com/user-attachments/assets/c40e1a86-d437-47aa-989c-bb86d83e18f0
 
