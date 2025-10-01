@@ -100,7 +100,7 @@ async function waitForEnabledPluginsLoaded() {
 function setDockedPanelPosition() {
   try {
     const root = document.documentElement
-    // 使用 padding 的 top 值作为 left，padding 的 left 值作为 right
+    // 记录main边距，以便保持任何边距下，都能和外壳保持相同距离；也为了挂起时可以自适应和挂起面板边框的距离
     root.style.setProperty('--docked-panel-base-top', `${mainElementPaddings.top}px`)
     root.style.setProperty('--docked-panel-base-left', `${mainElementPaddings.left}px`)
     root.style.setProperty('--docked-panel-base-bottom', `${mainElementPaddings.bottom}px`)
@@ -129,7 +129,12 @@ export async function load(name) {
   // 设置左键和右键的监听
   leftClickHandler = (e) => handleDockButtonClick(e, `${pluginName}.dockCurrentPanel`)
   rightClickHandler = (e) => {
-    e.preventDefault()
+
+    // 在右键按钮或者隐藏面板时，改变右键行为
+    const dockedPanel = document.querySelector('.collapsed-docked-panel > .orca-panel:nth-child(1 of .orca-panel)')
+    if (dockedPanel && dockedPanel.contains(e.target)) {
+      e.preventDefault()
+    }
     e.stopPropagation()
 
     // 如果是点击折叠面板，不需要约束点击按钮区域 ，直接弹出面板
