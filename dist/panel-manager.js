@@ -292,10 +292,18 @@ export function setupSettingsWatcher() {
       () => {
         const settings = orca.state.plugins[pluginName]?.settings;
         if (settings) {
+          // 处理自动脱焦设置变更
           const newAutoDefocusEnabled = settings?.enableAutoDefocus === true
           if (newAutoDefocusEnabled !== autoDefocusEnabled) {
             autoDefocusEnabled = newAutoDefocusEnabled
             console.log(`${pluginName} 自动脱焦设置已更新: ${autoDefocusEnabled}`)
+          }
+          
+          // 处理默认块ID设置变更
+          const newDefaultBlockId = settings?.defaultBlockId || ""
+          if (newDefaultBlockId !== defaultBlockId) {
+            defaultBlockId = newDefaultBlockId
+            console.log(`${pluginName} 默认块ID设置已更新: ${defaultBlockId}`)
           }
         }
       }
