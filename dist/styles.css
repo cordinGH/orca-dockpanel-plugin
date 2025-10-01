@@ -1,5 +1,6 @@
 :root{
-  --box-shadow-color: rgb(from var(--orca-color-bg-1)  max(calc(r - 38), calc(38 - r)) max(calc(g - 38), calc(38 - g)) max(calc(b - 38), calc(38 - b)) / 1);
+  /* --box-shadow-color: rgb(from var(--orca-color-bg-1)  max(calc(r - 38), calc(38 - r)) max(calc(g - 38), calc(38 - g)) max(calc(b - 38), calc(38 - b)) / 1); */
+  --box-shadow-color: rgb(from var(--orca-color-bg-1)  calc(r - 38) calc(g - 38) calc(b - 38) / 1);
   --z-index: 51;
 }
 @media (prefers-color-scheme: dark) {
@@ -28,9 +29,17 @@
   border-radius: inherit;
 }
 
-.orca-panel{
-  background-color: var(--orca-color-bg-1);
+/* ———————————————————————————————————————————————————— */
+/* 修复因为orca-panel而导致官方的list背景不生效的问题 */
+/* orca-panel的背景色是为了在停靠时有一个更好的过渡效果 */
+.orca-query-list-block{
+  isolation: isolate;
 }
+/* 1.4 尝试移除，然后取消background动画 */
+.orca-panel{
+  /* background-color: var(--orca-color-bg-1); */
+}
+/* ———————————————————————————————————————————————————— */
 
 .has-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
   position: absolute;
@@ -49,7 +58,10 @@
   overflow: hidden;
   z-index: var(--z-index);
   transform-origin: left top;
-  transition: all 0.2s ease-out;
+  transition: 
+    all 0.2s ease-out
+    ,background-color 0s,backdrop-filter 0s
+    ;
   background-color: var(--background-color);
   backdrop-filter: blur(7px);
 
