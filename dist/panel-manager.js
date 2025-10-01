@@ -9,14 +9,17 @@ let dockedPanelID = null
 let isLockedBeforeCollapsed = false
 let panelCloseWatcher = null
 let isCollapsed = false
+let lastMainPanelID = ""
 
 let defaultBlockId = ""
+let autoDefocusEnabled = false
+let settingsWatcher = null
 
 /**
  * 启动模块
  */
 
-export async function start(name, blockId) {
+export async function start(name, blockId, enableAutoDefocus) {
   pluginName = name
   dockedPanelID = null
   isCollapsed = false
@@ -24,8 +27,9 @@ export async function start(name, blockId) {
   setupPanelCloseWatcher()
   
   defaultBlockId = blockId
+  autoDefocusEnabled = enableAutoDefocus
 
-  console.log(`${pluginName} 面板管理模块已启动`)
+  console.log(`${pluginName} 面板管理模块已启动，自动脱焦：${autoDefocusEnabled}`)
 }
 
 /**
@@ -46,7 +50,8 @@ export async function cleanup() {
  * 停靠当前面板
  */
 export async function dockCurrentPanel() {
-  
+  // 新功能 v1.4.0 生成新停靠时，记录最后一次所在的主面板
+  lastMainPanelID = orca.state.activePanel
   // 如果只有一个面板，先在侧边打开今天的日志
   if (!orca.nav.isThereMoreThanOneViewPanel()) {
     // await orca.commands.invokeCommand("core.openTodayInPanel")
@@ -138,6 +143,8 @@ export function hasDockedPanel() {
 // 折叠同时会锁定面板，防止被跳转
 export function toggleCollapsedClass() {
   if (isCollapsed === true) {
+    // 新功能1.4.0：记录展开之前的最后一次主面板
+    lastMainPanelID = orca.state.activePanel
     // 是折叠状态，则退出折叠，并恢复锁定状态
     removeCollapsedClass()
     if (!isLockedBeforeCollapsed) {
@@ -151,6 +158,23 @@ export function toggleCollapsedClass() {
     console.log("已记录当前锁定状态，用于在下次退出折叠时恢复")
     if (!isLockedBeforeCollapsed) {
       orca.commands.invokeCommand("core.panel.toggleLock", dockedPanelID)
+    }
+
+    // 新功能1.4.0，折叠时自动脱离焦点
+    if (autoDefocusEnabled) {
+      if (dockedPanelID != orca.state.activePanel) {
+        console.log("当前面板不是停靠面板，不需要nav切出焦点")
+        return
+      } else {
+        if (lastMainPanelID != orca.state.activePanel) {
+          orca.nav.switchFocusTo(lastMainPanelID)
+          console.log("当前面板是停靠面板，nav切出焦点")
+        } else {
+          orca.nav.focusNext()
+        }
+      }
+    } else {
+      console.log("自动脱焦功能已禁用")
     }
   }
 }
@@ -211,8 +235,15 @@ function setupPanelCloseWatcher() {
       removeCollapsedClass()
       dockedPanelID = null
       orca.notify("info", "取消停靠，因为当前只剩下停靠面板")
+      return
     }
-    return
+
+    // 新功能v1.4.0：如果关闭面板后，nav到了折叠的停靠面板，
+    if (autoDefocusEnabled && orca.state.activePanel ===  dockedPanelID && isCollapsed){
+      orca.nav.focusNext()
+      console.log("当前焦点到了折叠的停靠面板，自动执行next面板")
+      return
+    }
   })
 
   // 监听关闭其他面板命令 - 使用before命令获取关闭前的状态
@@ -243,5 +274,45 @@ function cleanupPanelCloseWatcher() {
     orca.commands.unregisterAfterCommand("core.closePanel")
     panelCloseWatcher = null
     console.log(`${pluginName} 面板关闭监听器已清理`)
+  }
+}
+
+/**
+ * 设置设置变更监听器
+ */
+export function setupSettingsWatcher() {
+  if (settingsWatcher) {
+    return // 已经设置过了
+  }
+
+  // 使用 valtio 订阅设置变更
+  if (window.Valtio && window.Valtio.subscribe) {
+    settingsWatcher = window.Valtio.subscribe(
+      orca.state.plugins[pluginName], 
+      () => {
+        const settings = orca.state.plugins[pluginName]?.settings;
+        if (settings) {
+          const newAutoDefocusEnabled = settings?.enableAutoDefocus === true
+          if (newAutoDefocusEnabled !== autoDefocusEnabled) {
+            autoDefocusEnabled = newAutoDefocusEnabled
+            console.log(`${pluginName} 自动脱焦设置已更新: ${autoDefocusEnabled}`)
+          }
+        }
+      }
+    )
+    console.log(`${pluginName} 设置变更监听器已启动`)
+  } else {
+    console.warn(`${pluginName} valtio 不可用，设置变更监听器无法启动`)
+  }
+}
+
+/**
+ * 清理设置变更监听器
+ */
+function cleanupSettingsWatcher() {
+  if (settingsWatcher) {
+    settingsWatcher()
+    settingsWatcher = null
+    console.log(`${pluginName} 设置变更监听器已清理`)
   }
 }

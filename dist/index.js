@@ -123,8 +123,11 @@ export async function load(name) {
   await registerSettings()
 
   // 启动模块
-  await panelManager.start(pluginName, getDefaultBlockId())
+  await panelManager.start(pluginName, getDefaultBlockId(), getAutoDefocusEnabled())
   await commandHandler.start(pluginName, panelManager)
+
+  // 最后启动设置监听器，确保所有初始化都完成
+  panelManager.setupSettingsWatcher()
 
   // 设置左键和右键的监听
   leftClickHandler = (e) => handleDockButtonClick(e, `${pluginName}.dockCurrentPanel`)
@@ -229,6 +232,12 @@ async function registerSettings() {
       description: "单屏时，点击停靠按钮会默认停靠今日日志。可指定一个默认块替代日志。例如填写 1 ",
       type: "string",
       defaultValue: "",
+    },
+    enableAutoDefocus: {
+      label: "启动自动脱焦",
+      description: "折叠停靠面板时自动脱离焦点，避免焦点停留在折叠面板上",
+      type: "boolean",
+      defaultValue: false,
     }
   }
 
@@ -249,4 +258,12 @@ export function getSettings() {
 export function getDefaultBlockId() {
   const settings = getSettings()
   return settings.defaultBlockId || ""
+}
+
+/**
+ * 获取自动脱焦设置
+ */
+export function getAutoDefocusEnabled() {
+  const settings = getSettings()
+  return settings.enableAutoDefocus === true // 默认为false
 }
