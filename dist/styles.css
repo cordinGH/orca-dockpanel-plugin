@@ -58,17 +58,16 @@
   overflow: hidden;
   z-index: var(--z-index);
   transform-origin: left top;
-  transition: 
-    all 0.2s ease-out
-    ,background-color 0s,backdrop-filter 0s
-    ;
-  background-color: var(--background-color);
+  transition: all .2s ease-out;
+  background: var(--background-color);
   backdrop-filter: blur(7px);
+  
 
   /* 预留2px的边距，太贴边不好看了 */
   /* 1.39.1版本修改了hideable定位类型，变成了相对定位，故回调padding2px */
   &>.orca-hideable{
-    transition: opacity 0.2s ease-out;
+    opacity:1;
+    transition: opacity .2s ease-out .05s;
     width:auto;
     height:auto;
     padding: 2px;
@@ -92,10 +91,11 @@
   scale: 0.02 0.03;
   
   /* 折叠时渐变背景提一点点质感 */
-  background: var(--dockpanel-collapsed-bg);
+  background: var(--dockpanel-collapsed-bg) var(--background-color);
   
   &>.orca-hideable{
     opacity: 0;
+    transition: opacity .15s ease-out;
     pointer-events: none;
   }
   
