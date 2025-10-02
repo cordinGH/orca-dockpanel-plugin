@@ -2,9 +2,10 @@
 可以通过快捷键切出和收起。
 
 ## 版本主要变更
-- [v1.4.0](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.4.0)
+- [v1.4.2](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.4.2)
   - 新增可选设置项：折叠停靠面板时是否需要让焦点离开停靠面板
   - 更改设置里默认ID后，会立即生效无需再重启/刷新
+  - 优化收起/展开时的过渡效果
 - [v1.3.0](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.3.0)
   - 对 可全屏的块（pdf、白板、视频） 做了适配，方便用来做视频笔记、pdf笔记
 - [v1.2.0](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.2.0)
