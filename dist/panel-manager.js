@@ -55,7 +55,7 @@ export async function start(name, blockId, enableAutoDefocus) {
 
   defaultBlockId = blockId
   autoDefocusEnabled = enableAutoDefocus
-  console.log(`${pluginName} 面板管理模块已启动，自动脱焦：${autoDefocusEnabled}`)
+  console.log(`[dockpanel] 面板管理模块已启动，自动脱焦：${autoDefocusEnabled}`)
 }
 
 /**
@@ -81,7 +81,7 @@ export async function cleanup() {
   if (window.dockedPanelState.id) {
     await undockPanel()
   }
-  console.log(`${pluginName} 面板管理模块已清理`)
+  console.log(`[dockpanel] 面板管理模块已清理`)
 }
 
 /**
@@ -94,7 +94,6 @@ export async function dockCurrentPanel() {
   if (!orca.nav.isThereMoreThanOneViewPanel()) {
     // await orca.commands.invokeCommand("core.openTodayInPanel")
     // await orca.commands.invokeEditorCommand("core.editor.openOnTheSide", null, "544")
-    console.log(`面板管理器的defaultBlockId：${defaultBlockId}`)
     // 如果有默认块ID，直接在侧边打开该块，统一采用openInLastPanel API，更为流畅
     if (defaultBlockId && defaultBlockId.trim() !== "") {
       try {
@@ -231,7 +230,6 @@ function removeCollapsedClass() {
 function addDockPanelClass() {
   if (rootRow) {
     rootRow.classList.add('has-docked-panel')
-    console.log(`已为根容器添加停靠样式类`)
   }
 }
 
@@ -241,7 +239,6 @@ function addDockPanelClass() {
 function removeDockPanelClass() {
   if (rootRow) {
     rootRow.classList.remove('has-docked-panel')
-    console.log(`已为根容器移除停靠样式类`)
   }
 }
 
@@ -285,7 +282,7 @@ function cleanupDockedPanelCloseWatcher() {
   if (dockedPanelCloseWatcher) {
     dockedPanelCloseWatcher.disconnect()
     dockedPanelCloseWatcher = null
-    console.log(`${pluginName} 停靠面板关闭监听器已清理`)
+    console.log(`[dockpanel] 停靠面板关闭监听器已清理`)
   }
 }
 
@@ -308,21 +305,21 @@ export function setupSettingsWatcher() {
           const newAutoDefocusEnabled = settings?.enableAutoDefocus === true
           if (newAutoDefocusEnabled !== autoDefocusEnabled) {
             autoDefocusEnabled = newAutoDefocusEnabled
-            console.log(`${pluginName} 自动脱焦设置已更新: ${autoDefocusEnabled}`)
+            console.log(`[dockpanel] 自动脱焦设置已更新: ${autoDefocusEnabled}`)
           }
 
           // 处理默认块ID设置变更
           const newDefaultBlockId = settings?.defaultBlockId || ""
           if (newDefaultBlockId !== defaultBlockId) {
             defaultBlockId = newDefaultBlockId
-            console.log(`${pluginName} 默认块ID设置已更新: ${defaultBlockId}`)
+            console.log(`[dockpanel] 默认块ID设置已更新: ${defaultBlockId}`)
           }
         }
       }
     )
-    console.log(`${pluginName} 设置变更监听器已启动`)
+    console.log(`[dockpanel] 设置变更监听器已启动`)
   } else {
-    console.warn(`${pluginName} valtio 不可用，设置变更监听器无法启动`)
+    console.warn(`[dockpanel] valtio 不可用，设置变更监听器无法启动`)
   }
 }
 
@@ -333,7 +330,7 @@ function cleanupSettingsWatcher() {
   if (settingsWatcher) {
     settingsWatcher()
     settingsWatcher = null
-    console.log(`${pluginName} 设置变更监听器已清理`)
+    console.log(`[dockpanel] 设置变更监听器已清理`)
   }
 }
 

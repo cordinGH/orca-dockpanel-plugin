@@ -31,15 +31,15 @@ async function recordMainElementPaddings() {
         left: parseFloat(styles.paddingLeft) || 0,
         right: parseFloat(styles.paddingRight) || 0
       }
-      console.log(`${pluginName} main 元素 padding 值已记录:`, mainElementPaddings)
+      console.log(`[dockpanel] main 元素 padding 值已记录:`, mainElementPaddings)
 
       // 设置 CSS 变量供样式使用
       setDockedPanelPosition()
     } else {
-      console.warn(`${pluginName} 未找到 id="main" 的元素`)
+      console.warn(`[dockpanel] 未找到 id="main" 的元素`)
     }
   } catch (error) {
-    console.error(`${pluginName} 记录 main 元素 padding 值失败:`, error)
+    console.error(`[dockpanel] 记录 main 元素 padding 值失败:`, error)
   }
 }
 
@@ -60,7 +60,7 @@ async function waitForEnabledPluginsLoaded() {
 
     // 设置超时保护（5秒）
     const timeoutId = setTimeout(() => {
-      console.log(`${pluginName} 插件加载检查超时，继续执行`)
+      console.log(`[dockpanel] 插件加载检查超时，继续执行`)
       resolve()
     }, 5000)
 
@@ -79,7 +79,7 @@ async function waitForEnabledPluginsLoaded() {
 
       // 如果没有插件在加载，就认为加载完成
       if (loadingPluginEntries.length === 0) {
-        console.log(`${pluginName} 插件加载完毕，已启用插件数量: ${enabledPluginEntries.length}`, enabledPluginEntries)
+        console.log(`[dockpanel] 插件加载完毕，已启用插件数量: ${enabledPluginEntries.length}`, enabledPluginEntries)
         clearTimeout(timeoutId)
         resolve()
       }
@@ -91,7 +91,7 @@ async function waitForEnabledPluginsLoaded() {
       // 立即检查一次，防止创建订阅之前就已经加载完成
       checkPlugins()
     } else {
-      console.warn(`${pluginName} valtio 不可用，插件状态检查可能不准确`)
+      console.warn(`[dockpanel] valtio 不可用，插件状态检查可能不准确`)
     }
   })
 }
@@ -108,16 +108,15 @@ function setDockedPanelPosition() {
     root.style.setProperty('--docked-panel-base-left', `${mainElementPaddings.left}px`)
     root.style.setProperty('--docked-panel-base-bottom', `${mainElementPaddings.bottom}px`)
     root.style.setProperty('--docked-panel-base-right', `${mainElementPaddings.right}px`)
-    console.log(`${pluginName} 停靠面板基础位置已设置`)
+    console.log(`[dockpanel] 停靠面板基础位置已设置`)
   } catch (error) {
-    console.error(`${pluginName} 设置停靠面板位置失败:`, error)
+    console.error(`[dockpanel] 设置停靠面板位置失败:`, error)
   }
 }
 
 
 export async function load(name) {
   pluginName = name
-  console.log(`${pluginName} 插件已加载`)
 
   // 注入CSS
   orca.themes.injectCSSResource(`${pluginName}/dist/styles.css`, pluginName)
@@ -133,7 +132,7 @@ export async function load(name) {
   panelManager.setupSettingsWatcher()
 
   // 设置左键和右键的监听
-  leftClickHandler = (e) => handleDockButtonClick(e, `${pluginName}.dockCurrentPanel`)
+  leftClickHandler = (e) => handleDockButtonClick(e, `dockpanel.dockCurrentPanel`)
   rightClickHandler = (e) => {
 
     // 在右键按钮或者隐藏面板时，改变右键行为
@@ -146,11 +145,11 @@ export async function load(name) {
     // 如果是点击折叠面板，不需要约束点击按钮区域 ，直接弹出面板
     const collapsedPanel = document.querySelector('.has-docked-panel.collapsed-docked-panel > .orca-panel:nth-child(1 of .orca-panel)')
     if (collapsedPanel && collapsedPanel.contains(e.target)) {
-      orca.commands.invokeCommand(`${pluginName}.toggleDockedPanelCollapse`)
+      orca.commands.invokeCommand(`dockpanel.toggleDockedPanelCollapse`)
       return
     }
 
-    handleDockButtonClick(e, `${pluginName}.toggleDockedPanelCollapse`)
+    handleDockButtonClick(e, `dockpanel.toggleDockedPanelCollapse`)
   }
   document.addEventListener('click', leftClickHandler)
   document.addEventListener('contextmenu', rightClickHandler)
@@ -160,7 +159,7 @@ export async function load(name) {
 }
 
 export async function unload() {
-  console.log(`${pluginName} 插件已卸载`)
+  console.log(`[dockpanel] 插件已卸载`)
 
   // 移除CSS
   orca.themes.removeCSSResources(pluginName)
@@ -168,9 +167,9 @@ export async function unload() {
   // 清理设置模式（可选，unregister 会自动清理）
   try {
     await orca.plugins.setSettingsSchema(pluginName, {})
-    console.log(`${pluginName} 设置模式已清理`)
+    console.log(`[dockpanel] 设置模式已清理`)
   } catch (error) {
-    console.log(`${pluginName} 设置模式清理失败:`, error)
+    console.log(`[dockpanel] 设置模式清理失败:`, error)
   }
 
   // 清理各个模块
@@ -245,7 +244,7 @@ async function registerSettings() {
   }
 
   await orca.plugins.setSettingsSchema(pluginName, settingsSchema)
-  console.log(`${pluginName} 设置界面已加载，当前默认块id：${getDefaultBlockId()}`)
+  console.log(`[dockpanel] 设置界面已加载，当前默认块id：${getDefaultBlockId()}`)
 }
 
 /**

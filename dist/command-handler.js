@@ -19,8 +19,6 @@ export async function start(name, pm) {
   panelManager = pm
   // 注册插件命令
   registerCommands()
-
-  console.log(`${pluginName} 命令处理模块已启动`)
 }
 
 /**
@@ -30,7 +28,7 @@ export async function cleanup() {
   // 清理注册的命令
   cleanupCommands()
 
-  console.log(`${pluginName} 命令处理模块已清理`)
+  console.log(`[dockpanel] 命令处理模块已清理`)
 }
 
 /**
@@ -39,7 +37,7 @@ export async function cleanup() {
 function registerCommands() {
   // 停靠当前面板
   orca.commands.registerCommand(
-    `${pluginName}.dockCurrentPanel`,
+    `dockpanel.dockCurrentPanel`,
     async () => {
       if (!panelManager.hasDockedPanel()) {
         await panelManager.dockCurrentPanel()
@@ -55,7 +53,7 @@ function registerCommands() {
 
   // 切换停靠面板的收起/展开状态
   orca.commands.registerCommand(
-    `${pluginName}.toggleDockedPanelCollapse`,
+    `dockpanel.toggleDockedPanelCollapse`,
     async () => {
       if (!panelManager.hasDockedPanel()) {
         orca.notify("warn", "没有停靠面板")
@@ -87,9 +85,9 @@ async function assignDefaultShortcuts() {
         const isDockPanelCommand = (lowerCommand.includes("dock") && lowerCommand.includes("panel"))
         
         if (isDockPanelCommand) {
-          console.log(`${pluginName} ${keyName} 被 dockpanel其他版本占用，故覆盖分配`)
+          console.log(`[dockpanel] ${keyName} 被 dockpanel其他版本占用，故覆盖分配`)
         } else {
-          console.warn(`${pluginName} ${keyName} 已被占用: ${existingCommand}`)
+          console.warn(`[dockpanel] ${keyName} 已被占用: ${existingCommand}`)
           orca.notify("warn", `默认快捷键${keyName}分配失败，请手动分配`)
           return false
         }
@@ -101,11 +99,11 @@ async function assignDefaultShortcuts() {
     }
     
     // 分配快捷键
-    await assignShortcut(alt_q, `${pluginName}.toggleDockedPanelCollapse`, "隐藏/弹出停靠面板", "Alt+Q")
-    // await assignShortcut(c_alt_q, `${pluginName}.dockCurrentPanel`, "切换当前面板的停靠状", "Ctrl+Alt+Q")
+    await assignShortcut(alt_q, `dockpanel.toggleDockedPanelCollapse`, "隐藏/弹出停靠面板", "Alt+Q")
+    // await assignShortcut(c_alt_q, `dockpanel.dockCurrentPanel`, "切换当前面板的停靠状", "Ctrl+Alt+Q")
     
   } catch (error) {
-    console.warn(`${pluginName} 快捷键分配失败:`, error)
+    console.warn(`[dockpanel] 快捷键分配失败:`, error)
   }
 }
 
@@ -114,10 +112,10 @@ async function assignDefaultShortcuts() {
  */
 async function cleanupCommands() {
   // 清理命令
-  orca.commands.unregisterCommand(`${pluginName}.dockCurrentPanel`)
-  orca.commands.unregisterCommand(`${pluginName}.toggleDockedPanelCollapse`)
+  orca.commands.unregisterCommand(`dockpanel.dockCurrentPanel`)
+  orca.commands.unregisterCommand(`dockpanel.toggleDockedPanelCollapse`)
   
   // 清理快捷键 - 重置为默认状态
-  await orca.shortcuts.reset(`${pluginName}.toggleDockedPanelCollapse`)
-  // await orca.shortcuts.reset(`${pluginName}.dockCurrentPanel`)
+  await orca.shortcuts.reset(`dockpanel.toggleDockedPanelCollapse`)
+  // await orca.shortcuts.reset(`dockpanel.dockCurrentPanel`)
 }
