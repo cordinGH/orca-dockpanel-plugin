@@ -36,10 +36,7 @@
 .orca-query-list-block{
   isolation: isolate;
 }
-/* 1.4 尝试移除，然后取消background动画 */
-.orca-panel{
-  /* background-color: var(--orca-color-bg-1); */
-}
+
 /* ———————————————————————————————————————————————————— */
 
 .has-docked-panel> .orca-panel:nth-child(1 of .orca-panel){

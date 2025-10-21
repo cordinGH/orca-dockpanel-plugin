@@ -14,6 +14,7 @@ let isCollapsed = false
 
 let defaultBlockId = ""
 let autoDefocusEnabled = false
+let autoFocusEnabled = true
 let settingsWatcher = null
 
 // DOM 元素缓存
@@ -187,6 +188,9 @@ export function toggleCollapsedClass() {
       // console.log("收起之前为未锁定，现已恢复收起之前的锁定状态")
       orca.commands.invokeCommand("core.panel.toggleLock", window.dockedPanelState.id)
     }
+    if (autoFocusEnabled) {
+      orca.nav.switchFocusTo(window.dockedPanelState.id)
+    }
   } else {
     // 没有折叠，则进入折叠状态，并更新锁定状态
     setCollapsedClass()
@@ -204,7 +208,6 @@ export function toggleCollapsedClass() {
       }
       if (lastMainPanelID != orca.state.activePanel) {
         orca.nav.switchFocusTo(lastMainPanelID)
-        console.log("当前面板是停靠面板，nav切出焦点")
       } else {
         orca.nav.focusNext()
       }
@@ -313,6 +316,13 @@ export function setupSettingsWatcher() {
           if (newDefaultBlockId !== defaultBlockId) {
             defaultBlockId = newDefaultBlockId
             console.log(`[dockpanel] 默认块ID设置已更新: ${defaultBlockId}`)
+          }
+
+          // 处理自动聚焦设置变更
+          const newAutoFocusEnabled = settings?.enableAutoFocus === true
+          if (newAutoFocusEnabled !== autoFocusEnabled) {
+            autoFocusEnabled = newAutoFocusEnabled
+            console.log(`[dockpanel] 自动聚焦设置已更新: ${autoFocusEnabled}`)
           }
         }
       }

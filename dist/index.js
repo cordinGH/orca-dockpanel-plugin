@@ -125,7 +125,7 @@ export async function load(name) {
   await registerSettings()
 
   // 启动模块
-  await panelManager.start(pluginName, getDefaultBlockId(), getAutoDefocusEnabled())
+  await panelManager.start(pluginName, getDefaultBlockId(), getAutoDefocusEnabled(), getAutoFocusEnabled())
   await commandHandler.start(pluginName, panelManager)
 
   // 最后启动设置监听器，确保所有初始化都完成
@@ -240,7 +240,13 @@ async function registerSettings() {
       description: "折叠停靠面板时自动脱离焦点，避免焦点停留在折叠面板上",
       type: "boolean",
       defaultValue: false,
-    }
+    },
+    enableAutoFocus: {
+      label: "启动自动聚焦",
+      description: "展开停靠面板时自动聚焦到停靠面板",
+      type: "boolean",
+      defaultValue: true,
+    },
   }
 
   await orca.plugins.setSettingsSchema(pluginName, settingsSchema)
@@ -268,4 +274,11 @@ export function getDefaultBlockId() {
 export function getAutoDefocusEnabled() {
   const settings = getSettings()
   return settings.enableAutoDefocus === true // 默认为false
+}
+/**
+ * 获取自动聚焦设置
+ */
+export function getAutoFocusEnabled() {
+  const settings = getSettings()
+  return settings.enableAutoFocus === true // 默认为true
 }
