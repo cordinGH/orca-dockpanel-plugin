@@ -14,7 +14,8 @@
     right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm));
     font-size: var(--orca-fontsize-lg);
     cursor:pointer;
-    z-index: var(--z-index);
+    z-index: var(--orca-zindex-editor-sidepanel);
+    z-index: 51;
     padding: var(--orca-spacing-sm) var(--orca-spacing-2xs);
     border-radius: var(--orca-radius-md);
     background-color: var(--orca-color-bg-1);

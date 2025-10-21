@@ -54,6 +54,7 @@ async function waitForEnabledPluginsLoaded() {
 
     resolve = () => {
       if (unsubscribe) unsubscribe()
+      clearTimeout(timeoutId)
       originalResolve()
     }
 
@@ -68,7 +69,10 @@ async function waitForEnabledPluginsLoaded() {
       const { plugins } = orca.state
       // 直接获取有效的插件条目，过滤出存在有效plugin的条目
       const validPluginEntries = Object.entries(plugins).filter(([, plugin]) => plugin)
-      if (validPluginEntries.length === 0) return
+      if (validPluginEntries.length === 0) {
+        resolve()
+        return
+      }
       // 获取已启用的插件和还在没加载好的插件
       const enabledPluginEntries = validPluginEntries.filter(([, plugin]) => plugin.enabled)
       const loadingPluginEntries = enabledPluginEntries.filter(([, plugin]) => !plugin.module)
@@ -87,7 +91,6 @@ async function waitForEnabledPluginsLoaded() {
       // 立即检查一次，防止创建订阅之前就已经加载完成
       checkPlugins()
     } else {
-      // 如果 valtio 不可用，记录警告
       console.warn(`${pluginName} valtio 不可用，插件状态检查可能不准确`)
     }
   })

@@ -1,7 +1,8 @@
 :root{
   /* --box-shadow-color: rgb(from var(--orca-color-bg-1)  max(calc(r - 38), calc(38 - r)) max(calc(g - 38), calc(38 - g)) max(calc(b - 38), calc(38 - b)) / 1); */
   --box-shadow-color: rgb(from var(--orca-color-bg-1)  calc(r - 38) calc(g - 38) calc(b - 38) / 1);
-  --z-index: 51;
+  --z-index: 52;
+  /* --z-index: calc(var(--orca-zindex-editor-sidepanel) + 1); */
 }
 @media (prefers-color-scheme: dark) {
   :root{
@@ -55,10 +56,13 @@
   border-radius: inherit;
   border: var(--orca-border-general);
   box-shadow: 1rem .375rem 2rem -1rem var(--box-shadow-color);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
   z-index: var(--z-index);
   transform-origin: left top;
-  transition: all .2s ease-out;
+  transition: 
+    all .2s ease-out,
+    background-color 0s ease-out;
   background: var(--background-color);
   backdrop-filter: blur(7px);
   
