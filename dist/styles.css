@@ -48,7 +48,7 @@
   min-height: 0 !important;
   /* 距离祖父容器main始终保持固定距离 */
   top: calc(.3125rem - var(--docked-panel-base-top));
-  left: calc(.3125rem - var(--docked-panel-base-left));
+  right: calc(.3125rem - var(--docked-panel-base-right));
   bottom: calc(.3125rem - var(--docked-panel-base-bottom));
   /* 52rem刚好是子块orca-hidden的left right为2px时的，内容不被压缩的最小尺寸 */
   width: min(80%, 52rem);
@@ -65,6 +65,7 @@
     background-color 0s ease-out;
   background: var(--background-color);
   backdrop-filter: blur(7px);
+  
   
 
   /* 预留2px的边距，太贴边不好看了 */
@@ -91,8 +92,22 @@
 
 /* 折叠状态*/
 .has-docked-panel.collapsed-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
-  translate: -.375rem 2.5rem;
+  /* translate: -.375rem 2.5rem; */
+  transform-origin:right top;
+  right:calc(-1 * var(--docked-panel-base-right));
+  top:.5rem;
   scale: 0.02 0.03;
+  /* opacity:.9; */
+  /* border-radius:999px; */
+  /* border-top-right-radius:999px; */
+  /* border-bottom-right-radius:999px; */
+  border-top-left-radius:39%;
+  border-bottom-left-radius:39%;
+  transition: 
+    all .2s ease-out,
+    background-color 0s ease-out,
+    border-radius .6s ease-out .2s;
+  
   
   /* 折叠时渐变背景提一点点质感 */
   background: var(--dockpanel-collapsed-bg) var(--background-color);
