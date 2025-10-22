@@ -10,7 +10,6 @@ let dockedPanelCloseWatcher = null
 let firstPanelObserver = null
 let dockedPanelIdUnSubscribe = null
 let lastMainPanelID = ""
-let isCollapsed = false
 
 let defaultBlockId = ""
 let autoDefocusEnabled = false
@@ -26,11 +25,14 @@ window.dockedPanelState = window.Valtio.proxy({
   id: null
 })
 
+// 暴露折叠状态到全局，供其他插件访问
+window.dockedPanelIsCollapsed = false
+
 
 export async function start(name, blockId, enableAutoDefocus) {
   pluginName = name
   window.dockedPanelState.id = null
-  isCollapsed = false
+  window.dockedPanelIsCollapsed = false
   
   // 缓存 DOM 元素
   rootRow = document.querySelector("#main>.orca-panels-row")
@@ -43,7 +45,7 @@ export async function start(name, blockId, enableAutoDefocus) {
     for (const record of records) {
       if (record.type === 'attributes' && record.attributeName === 'class') {
         const newClass = record.target.getAttribute('class')
-        if (newClass.includes('active') && isCollapsed) {
+        if (newClass.includes('active') && window.dockedPanelIsCollapsed) {
           orca.nav.focusNext()
         }
         return
@@ -179,7 +181,7 @@ export function hasDockedPanel() {
 
 // 折叠同时会锁定面板，防止被跳转
 export function toggleCollapsedClass() {
-  if (isCollapsed === true) {
+  if (window.dockedPanelIsCollapsed === true) {
     // 新功能1.4.0：记录展开之前的最后一次主面板
     lastMainPanelID = orca.state.activePanel
     // 是折叠状态，则退出折叠，并恢复锁定状态
@@ -217,13 +219,13 @@ export function toggleCollapsedClass() {
 function setCollapsedClass() {
   if (rootRow) {
     rootRow.classList.add('collapsed-docked-panel')
-    isCollapsed = true
+    window.dockedPanelIsCollapsed = true
   }
 }
 function removeCollapsedClass() {
   if (rootRow) {
     rootRow.classList.remove('collapsed-docked-panel')
-    isCollapsed = false
+    window.dockedPanelIsCollapsed = false
   }
 }
 
