@@ -107,17 +107,17 @@ export async function dockCurrentPanel() {
           await orca.nav.openInLastPanel("block", { blockId: defaultBlockId })
         } else {
           orca.notify("warn", `块ID ${defaultBlockId} 已被删除，使用默认的今日日志`, pluginName)
-          await orca.commands.invokeCommand("core.openTodayInPanel")
+          await orca.nav.openInLastPanel("journal", { date: new Date(new Date().toDateString()) })
         }
       } catch (error) {
         orca.notify("warn", `块ID ${defaultBlockId} 不存在，使用默认的今日日志`, pluginName)
         // await orca.commands.invokeCommand("core.openTodayInPanel")
-        await orca.nav.openInLastPanel("journal", { date: new Date() })
+        await orca.nav.openInLastPanel("journal", { date: new Date(new Date().toDateString()) })
       }
     } else {
       // 没有设置块ID，使用今日日志
       // await orca.commands.invokeCommand("core.openTodayInPanel")
-      await orca.nav.openInLastPanel("journal", { date: new Date() })
+      await orca.nav.openInLastPanel("journal", { date: new Date(new Date().toDateString()) })
     }
 
   }

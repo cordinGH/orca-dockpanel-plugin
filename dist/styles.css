@@ -64,12 +64,11 @@
   backdrop-filter: blur(7px);
   
   
-
   /* 预留2px的边距，太贴边不好看了 */
   /* 1.39.1版本修改了hideable定位类型，变成了相对定位，故回调padding2px */
-  &>.orca-hideable{
+  &>.orca-hideable:not(.orca-hideable-hidden){
     opacity:1;
-    transition: opacity .2s ease-out .05s;
+    transition: opacity 0.2s ease-out 0.1s;
     width:auto;
     height:auto;
     padding: 2px;
