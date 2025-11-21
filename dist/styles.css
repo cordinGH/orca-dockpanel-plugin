@@ -1,7 +1,8 @@
 :root{
   /* --box-shadow-color: rgb(from var(--orca-color-bg-1)  max(calc(r - 38), calc(38 - r)) max(calc(g - 38), calc(38 - g)) max(calc(b - 38), calc(38 - b)) / 1); */
   --box-shadow-color: rgb(from var(--orca-color-bg-1)  calc(r - 38) calc(g - 38) calc(b - 38) / 1);
-  --z-index: 52;
+  /* 当后方分屏时，尺寸拖拽条的z-index是60 */
+  --z-index: 61;
   /* --z-index: calc(var(--orca-zindex-editor-sidepanel) + 1); */
 }
 @media (prefers-color-scheme: dark) {
