@@ -2,6 +2,7 @@
 可以通过快捷键切出和收起。
 
 ## 版本主要变更
+- ...
 - [v1.4.2](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.4.2)
   - 新增可选设置项：折叠停靠面板时是否需要让焦点离开停靠面板
   - 更改设置里默认ID后，会立即生效无需再重启/刷新
