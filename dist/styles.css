@@ -91,7 +91,7 @@
 .has-docked-panel.collapsed-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
   /* translate: -.375rem 2.5rem; */
   transform-origin:right top;
-  right:calc(-1 * var(--docked-panel-base-right));
+  translate: var(--docked-panel-base-right);
   top:.5rem;
   scale: 0.02 0.03;
   /* opacity:.9; */

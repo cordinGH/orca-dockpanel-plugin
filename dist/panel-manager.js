@@ -104,22 +104,41 @@ export async function dockCurrentPanel() {
         const block = await orca.invokeBackend("get-block", defaultBlockId)
         if (block && !block.deleted) {
           // 直接在侧边打开指定块
-          await orca.nav.openInLastPanel("block", { blockId: defaultBlockId })
+          // await orca.nav.openInLastPanel("block", { blockId: defaultBlockId })
+          orca.nav.addTo(orca.state.activePanel, "left", {
+            view: "block",
+            viewArgs: {blockId: defaultBlockId},
+            viewState: {}
+          })
         } else {
           orca.notify("warn", `块ID ${defaultBlockId} 已被删除，使用默认的今日日志`, pluginName)
-          await orca.nav.openInLastPanel("journal", { date: new Date(new Date().toDateString()) })
+          // await orca.nav.openInLastPanel("journal", { date: new Date(new Date().toDateString()) })
+          orca.nav.addTo(orca.state.activePanel, "left", {
+            view: "journal",
+            viewArgs: {date: new Date(new Date().toDateString())},
+            viewState: {}
+          })
         }
       } catch (error) {
         orca.notify("warn", `块ID ${defaultBlockId} 不存在，使用默认的今日日志`, pluginName)
         // await orca.commands.invokeCommand("core.openTodayInPanel")
-        await orca.nav.openInLastPanel("journal", { date: new Date(new Date().toDateString()) })
+        // await orca.nav.openInLastPanel("journal", { date: new Date(new Date().toDateString()) })
+        orca.nav.addTo(orca.state.activePanel, "left", {
+          view: "journal",
+          viewArgs: {date: new Date(new Date().toDateString())},
+          viewState: {}
+        })
       }
     } else {
       // 没有设置块ID，使用今日日志
       // await orca.commands.invokeCommand("core.openTodayInPanel")
-      await orca.nav.openInLastPanel("journal", { date: new Date(new Date().toDateString()) })
+      // await orca.nav.openInLastPanel("journal", { date: new Date(new Date().toDateString()) })
+      orca.nav.addTo(orca.state.activePanel, "left", {
+        view: "journal",
+        viewArgs: {date: new Date(new Date().toDateString())},
+        viewState: {}
+      })
     }
-
   }
 
   const currentPanelId = orca.state.activePanel
