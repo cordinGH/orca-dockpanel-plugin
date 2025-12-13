@@ -60,6 +60,7 @@
   transform-origin: left top;
   transition: 
     all .2s ease-out,
+    border-radius 0s ease-out 0s,
     background-color 0s ease-out;
   background: var(--background-color);
   backdrop-filter: blur(7px);
