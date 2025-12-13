@@ -19,18 +19,19 @@ let rootRow = document.querySelector("#main>.orca-panels-row")
 
 // 创建停靠面板状态的 Proxy 包装器（只暴露 id）
 // 使用 Valtio 的 proxy 创建响应式对象，以支持订阅
-window.dockedPanelState = window.Valtio.proxy({
+window.pluginDockpanel = {}
+window.pluginDockpanel.panel = window.Valtio.proxy({
   id: null
 })
 
 // 暴露折叠状态到全局，供其他插件访问
-window.dockedPanelIsCollapsed = false
+window.pluginDockpanel.isCollapsed = false
 
 
 export async function start(name, blockId, enableAutoDefocus) {
   pluginName = name
-  window.dockedPanelState.id = null
-  window.dockedPanelIsCollapsed = false
+  window.pluginDockpanel.panel.id = null
+  window.pluginDockpanel.isCollapsed = false
   
   // 监听停靠面板关闭事件
   setupDockedPanelCloseWatcher()
@@ -55,7 +56,7 @@ export function cleanup() {
   }
 
   // 如果有停靠的面板，先取消停靠
-  if (window.dockedPanelState.id) undockPanel()
+  if (window.pluginDockpanel.panel.id) undockPanel()
   console.log(`[dockpanel] 面板管理模块已清理`)
 }
 
@@ -64,8 +65,8 @@ export function cleanup() {
  */
 export async function dockCurrentPanel() {
   // 如果当前已存在停靠面板，则取消
-  if (window.dockedPanelState.id) {
-    if (window.dockedPanelState.id === orca.state.activePanel) {
+  if (window.pluginDockpanel.panel.id) {
+    if (window.pluginDockpanel.panel.id === orca.state.activePanel) {
       undockPanel()
       return
     }
@@ -126,9 +127,9 @@ export async function dockCurrentPanel() {
  */
 export function undockPanel() {
   // 比对取消时的锁定状态，如果和原状态不一致，则切换锁定状态变成一致。
-  const isLockedNow = orca.nav.findViewPanel(window.dockedPanelState.id, orca.state.panels).locked === true
+  const isLockedNow = orca.nav.findViewPanel(window.pluginDockpanel.panel.id, orca.state.panels).locked === true
   if (isLockedNow !== isLockedBeforeCollapsed) {
-    orca.commands.invokeCommand("core.panel.toggleLock", window.dockedPanelState.id)
+    orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
   }
   removeDockPanel()
 }
@@ -138,35 +139,35 @@ export function undockPanel() {
  * 获取停靠的面板ID
  */
 export function getDockedPanelID() {
-  return window.dockedPanelState.id
+  return window.pluginDockpanel.panel.id
 }
 
 /**
  * 检查是否有停靠的面板
  */
 export function hasDockedPanel() {
-  return window.dockedPanelState.id !== null
+  return window.pluginDockpanel.panel.id !== null
 }
 
 // 折叠同时会锁定面板，防止被跳转
 export function toggleCollapsedClass() {
-  if (window.dockedPanelIsCollapsed) {
+  if (window.pluginDockpanel.isCollapsed) {
     // 是折叠状态，则退出折叠，并恢复锁定状态
     removeCollapsed()
-    if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", window.dockedPanelState.id)
+    if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
 
-    if (autoFocusEnabled) orca.nav.switchFocusTo(window.dockedPanelState.id)
+    if (autoFocusEnabled) orca.nav.switchFocusTo(window.pluginDockpanel.panel.id)
 
   } else {
     // 没有折叠，则进入折叠状态
     setCollapsed()
     // 折叠后应当锁定面板。记录折叠前的锁定状态，用于在下次展开时取消锁定。
-    isLockedBeforeCollapsed = orca.nav.findViewPanel(window.dockedPanelState.id, orca.state.panels).locked === true
-    if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", window.dockedPanelState.id)
+    isLockedBeforeCollapsed = orca.nav.findViewPanel(window.pluginDockpanel.panel.id, orca.state.panels).locked === true
+    if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
   
     // 折叠自动脱离焦点
     if (autoDefocusEnabled) {
-      if (window.dockedPanelState.id != orca.state.activePanel) return
+      if (window.pluginDockpanel.panel.id != orca.state.activePanel) return
       orca.nav.focusNext()
     }
   }
@@ -176,13 +177,13 @@ export function toggleCollapsedClass() {
 function setCollapsed() {
   if (rootRow) {
     rootRow.classList.add('collapsed-docked-panel')
-    window.dockedPanelIsCollapsed = true
+    window.pluginDockpanel.isCollapsed = true
   }
 }
 function removeCollapsed() {
   if (rootRow) {
     rootRow.classList.remove('collapsed-docked-panel')
-    window.dockedPanelIsCollapsed = false
+    window.pluginDockpanel.isCollapsed = false
   }
 }
 
@@ -192,7 +193,7 @@ function removeCollapsed() {
 function setDockPanel(panelId) {
   if (rootRow) {
     rootRow.classList.add('has-docked-panel')
-    window.dockedPanelState.id = panelId
+    window.pluginDockpanel.panel.id = panelId
   }
 }
 
@@ -203,7 +204,7 @@ function removeDockPanel() {
   if (rootRow) {
     rootRow.classList.remove('has-docked-panel')
     removeCollapsed()
-    window.dockedPanelState.id = null
+    window.pluginDockpanel.panel.id = null
   }
 }
 
@@ -217,7 +218,7 @@ function setupDockedPanelCloseWatcher() {
   }
   // 只观察根级子面板的移除
   dockedPanelCloseWatcher = new MutationObserver((records) => {
-    const currentDockedId = window.dockedPanelState.id;
+    const currentDockedId = window.pluginDockpanel.panel.id;
     for (const record of records) {
       for (const node of record.removedNodes) {
         if (node.nodeType !== 1) continue; 

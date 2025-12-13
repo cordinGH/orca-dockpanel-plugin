@@ -184,10 +184,10 @@ async function dockBtnHandler(e) {
   // 如果点击的不是面板，不处理
   if (!target?.classList.contains("orca-panel")) return
 
-  const targetPanelIsDockpanel = target.dataset.panelId === window.dockedPanelState.id
+  const targetPanelIsDockpanel = target.dataset.panelId === window.pluginDockpanel.panel.id
 
   // 如果左键点击的是折叠的停靠面板，则展开
-  if (e.button === 0 && targetPanelIsDockpanel && window.dockedPanelIsCollapsed) {
+  if (e.button === 0 && targetPanelIsDockpanel && window.pluginDockpanel.isCollapsed) {
     orca.commands.invokeCommand(`dockpanel.toggleDockedPanelCollapse`)
     return
   }
