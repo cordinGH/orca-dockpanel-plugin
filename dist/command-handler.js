@@ -38,15 +38,8 @@ function registerCommands() {
   // 停靠当前面板
   orca.commands.registerCommand(
     `dockpanel.dockCurrentPanel`,
-    async () => {
-      if (!panelManager.hasDockedPanel()) {
-        await panelManager.dockCurrentPanel()
-      } else if (panelManager.getDockedPanelID() !== orca.state.activePanel) {
-        await panelManager.undockPanel()
-        await panelManager.dockCurrentPanel()
-      } else {
-        await panelManager.undockPanel()
-      }
+    () => {
+      panelManager.dockCurrentPanel()
     },
     "切换当前面板的停靠状态（dock）"
   )
@@ -54,7 +47,7 @@ function registerCommands() {
   // 切换停靠面板的收起/展开状态
   orca.commands.registerCommand(
     `dockpanel.toggleDockedPanelCollapse`,
-    async () => {
+    () => {
       if (!panelManager.hasDockedPanel()) {
         orca.notify("warn", "没有停靠面板")
         return
