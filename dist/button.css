@@ -43,13 +43,13 @@
 #main>.orca-panels-row .orca-panel .orca-maximized{
     &:is(.orca-whiteboard, .orca-repr-pdf-container, .orca-video-container){
         width:auto;
-        /* 把 main 的边距填上 */
         overflow: hidden;
-        bottom: calc(2.25rem - var(--docked-panel-base-bottom));
+        /* bottom: calc(2.25rem - var(--docked-panel-base-bottom)); */
         border-radius:6px;
     }
 
     &.orca-repr-pdf-container{
+        top:calc(-2.25rem - var(--docked-panel-base-top));
         overflow: hidden;
         >.orca-pdf-toolbar{
             margin-right:3rem;
@@ -58,7 +58,9 @@
             margin-left:.3rem;
         }
     }
+    
     &.orca-video-container{
+        top:calc(-2.25rem - var(--docked-panel-base-top));
         overflow: hidden;
         >.orca-video-toolbar{
             margin-right:3rem;
@@ -67,7 +69,7 @@
     }
     
     &.orca-whiteboard{
-        :is(.orca-whiteboard-insert-btn, .sidebar-trigger__label-element){
+        .excalidraw.excalidraw-container:not(.excalidraw--mobile) :is(.orca-whiteboard-insert-btn, .sidebar-trigger__label-element){
             translate:-2.5rem 0;
         }
         .orca-whiteboard-editing{
@@ -85,3 +87,17 @@
     }
 }
 
+
+
+
+/* 修复虎鲸1.55版本全屏白板的样式bug */
+/* 2025-12-12，来源：@sethyuan */
+.orca-block-editor:has(> .orca-whiteboard.orca-maximized) {
+    position: static;
+  }
+  
+  .orca-whiteboard.orca-maximized {
+    position: absolute;
+    top: 0;
+    height: 100%;
+  }

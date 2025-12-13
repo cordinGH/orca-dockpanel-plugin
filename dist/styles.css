@@ -121,16 +121,3 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   }
 }
-
-
-/* 修复虎鲸1.55版本全屏白板的样式bug */
-/* 2025-12-12，来源：@Seth */
-.orca-block-editor:has(> .orca-whiteboard.orca-maximized) {
-  position: static;
-}
-
-.orca-whiteboard.orca-maximized {
-  position: absolute;
-  top: 0;
-  height: 100%;
-}
