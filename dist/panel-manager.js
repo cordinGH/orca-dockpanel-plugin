@@ -297,3 +297,26 @@ function cleanupSettingsWatcher() {
     console.log(`[dockpanel] 设置变更监听器已清理`)
   }
 }
+
+
+
+// 新功能，右键菜单直接打开停靠面板  2025年12月13日
+export function openInDockedpanel(blockId) {
+  const dpid = window.pluginDockpanel.panel.id
+  if (dpid) {
+    // 如果存在停靠面板，先确保展开，然后goTo
+    if (window.pluginDockpanel.isCollapsed) toggleCollapsedClass()
+    orca.nav.goTo("block", { blockId }, dpid)
+
+    return
+  }
+
+  // 不存在就起一个
+  orca.nav.addTo(orca.state.activePanel, "left", {
+    view: "block",
+    viewArgs: {blockId},
+    viewState: {}
+  })
+
+  dockCurrentPanel()
+}

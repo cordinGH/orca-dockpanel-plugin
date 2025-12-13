@@ -58,6 +58,23 @@ function registerCommands() {
     "隐藏/弹出停靠面板（dock）"
   )
 
+
+  // 新功能，右键菜单直接打开停靠面板  2025年12月13日
+  orca.blockMenuCommands.registerBlockMenuCommand("dockpanel.openInDockedpanel", {
+    worksOnMultipleBlocks: false,
+    render: (blockId, rootBlockId, close) => {
+        const { createElement } = window.React;
+        return createElement(orca.components.MenuText, {
+            preIcon: "ti ti-external-link",
+            title: "在停靠面板打开",
+            onClick: () => {
+                close();
+                panelManager.openInDockedpanel(blockId)
+            }
+        });
+    }
+  })
+
   assignDefaultShortcuts()
 }
 
@@ -107,6 +124,8 @@ async function cleanupCommands() {
   // 清理命令
   orca.commands.unregisterCommand(`dockpanel.dockCurrentPanel`)
   orca.commands.unregisterCommand(`dockpanel.toggleDockedPanelCollapse`)
+
+  orca.blockMenuCommands.unregisterBlockMenuCommand("dockpanel.openInDockedpanel");
   
   // 清理快捷键 - 重置为默认状态
   await orca.shortcuts.reset(`dockpanel.toggleDockedPanelCollapse`)
