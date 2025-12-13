@@ -91,7 +91,7 @@
 .has-docked-panel.collapsed-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
   /* translate: -.375rem 2.5rem; */
   transform-origin:right top;
-  translate: var(--docked-panel-base-right);
+  translate: calc(.3125rem - var(--docked-panel-base-right));
   top:.5rem;
   scale: 0.02 0.03;
   /* opacity:.9; */
@@ -120,4 +120,17 @@
     /* border-color: var(--orca-color-primary-5); */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   }
+}
+
+
+/* 修复虎鲸1.55版本全屏白板的样式bug */
+/* 2025-12-12，来源：@Seth */
+.orca-block-editor:has(> .orca-whiteboard.orca-maximized) {
+  position: static;
+}
+
+.orca-whiteboard.orca-maximized {
+  position: absolute;
+  top: 0;
+  height: 100%;
 }

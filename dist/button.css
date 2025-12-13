@@ -11,24 +11,22 @@
     
     content:"\f1f2";
     position: absolute;
-    right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm));
+    right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm));
     font-size: var(--orca-fontsize-lg);
+    padding: var(--orca-spacing-sm) var(--orca-spacing-2xs);
+    top:.5rem;
     cursor:pointer;
     z-index: var(--orca-zindex-editor-sidepanel);
     z-index: 51;
-    padding: var(--orca-spacing-sm) var(--orca-spacing-2xs);
     border-radius: var(--orca-radius-md);
     background-color: var(--orca-color-bg-1);
     -webkit-user-select: none;
     user-select: none;
-    margin-top:.5rem;
 }
 
 #main>.orca-panels-row.has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
     content:"\f1f1";
     color: var(--orca-color-primary-5);
-    /* 子块orca-hidden有了2px right，得跟随移动 */
-    right: calc(var(--orca-spacing-lg) + var(--orca-spacing-sm));
 }
 
 #main>.orca-panels-row .orca-panel .orca-panel-drag-handle, .orca-panel-drag-handle~*{
@@ -44,14 +42,10 @@
 /* 适配白板块、pdf块、视频块在全屏时，右上角按钮布局 */
 #main>.orca-panels-row .orca-panel .orca-maximized{
     &:is(.orca-whiteboard, .orca-repr-pdf-container, .orca-video-container){
-        height:auto;
         width:auto;
         /* 把 main 的边距填上 */
         overflow: hidden;
-        top:calc(-2.25rem - var(--docked-panel-base-top));
         bottom: calc(2.25rem - var(--docked-panel-base-bottom));
-        left: calc(-1 * var(--docked-panel-base-left));
-        right: calc(-1 * var(--docked-panel-base-right));
         border-radius:6px;
     }
 
@@ -77,14 +71,15 @@
             translate:-2.5rem 0;
         }
         .orca-whiteboard-editing{
-            translate:calc(-1.25rem - var(--docked-panel-base-right)) calc(2.5rem + var(--docked-panel-base-top));
+            right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm));
+            top: 2.5rem;
             border:none;
             box-shadow:var(--orca-shadow-list);
             border-radius:var(--orca-radius-md);
             padding:0;
             &>.orca-button{
-                padding: var(--orca-spacing-sm) var(--orca-spacing-xs);
-                font-size:1.1rem;
+                padding: var(--orca-spacing-sm) var(--orca-spacing-2xs);
+                font-size: var(--orca-fontsize-lg);
             }
         }
     }
