@@ -303,20 +303,35 @@ function cleanupSettingsWatcher() {
 // 新功能，右键菜单直接打开停靠面板  2025年12月13日
 export function openInDockedpanel(blockId) {
   const dpid = window.pluginDockpanel.panel.id
+
+  // 将日志块id转为日志渲染视图
+  const p0 = orca.state.blocks[blockId].properties[0]
+  let isJournal = false
+  let date = null
+  if (p0.name === "_repr" && p0.value.type === 'journal') {
+    isJournal = true
+    date = p0.value.date
+  }
+
   if (dpid) {
     // 如果存在停靠面板，先确保展开，然后goTo
     if (window.pluginDockpanel.isCollapsed) toggleCollapsedClass()
-    orca.nav.goTo("block", { blockId }, dpid)
-
+    isJournal ? orca.nav.goTo("journal", { date }, dpid) : orca.nav.goTo("block", { blockId }, dpid)
     return
   }
 
   // 不存在就起一个
-  orca.nav.addTo(orca.state.activePanel, "left", {
-    view: "block",
-    viewArgs: {blockId},
-    viewState: {}
-  })
+  orca.nav.addTo(orca.state.activePanel, "left", 
+    isJournal ? {
+      view: "journal",
+      viewArgs: {date},
+      viewState: {}
+    } : {
+      view: "block",
+      viewArgs: {blockId},
+      viewState: {}
+    }
+  )
 
   dockCurrentPanel()
 }
