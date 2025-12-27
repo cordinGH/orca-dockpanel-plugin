@@ -38,26 +38,18 @@ function registerCommands() {
   // 停靠当前面板
   orca.commands.registerCommand(
     `dockpanel.dockCurrentPanel`,
-    () => {
-      panelManager.dockCurrentPanel()
-    },
+    () => panelManager.dockCurrentPanel(),
     "切换当前面板的停靠状态（dock）"
   )
 
   // 切换停靠面板的收起/展开状态
   orca.commands.registerCommand(
     `dockpanel.toggleDockedPanelCollapse`,
-    () => {
-      if (!panelManager.hasDockedPanel()) {
-        orca.notify("warn", "没有停靠面板")
-        return
-      } else{
-        panelManager.toggleCollapsedClass()
-      }
-    },
+    () => panelManager.toggleCollapsedClass(),
     "隐藏/弹出停靠面板（dock）"
   )
 
+  assignDefaultShortcuts()
 
   // 新功能，右键菜单直接打开停靠面板  2025年12月13日
   orca.blockMenuCommands.registerBlockMenuCommand("dockpanel.openInDockedpanel", {
@@ -74,8 +66,6 @@ function registerCommands() {
         });
     }
   })
-
-  assignDefaultShortcuts()
 }
 
 /**

@@ -130,8 +130,6 @@ export async function load(name) {
   
   // 记录main元素的padding作为挂起面板的基准定位。
   recordMainElementPaddings()
- 
-  panelManager.setupSettingsWatcher()
 }
 
 export async function unload() {
@@ -230,7 +228,7 @@ async function dockBtnHandler(e) {
  */
 async function registerSettings() {
   const settingsSchema = {
-    defaultBlockId: {
+    pluginDockPanelDefaultBlockId: {
       label: "默认块ID",
       description: "单屏时，点击停靠按钮会默认停靠今日日志。也可指定一个默认块ID替代日志。",
       type: "string",
@@ -265,7 +263,7 @@ export function getSettings() {
  * 获取默认块ID
  */
 export function getDefaultBlockId() {
-  return getSettings().defaultBlockId.trim() || ""
+  return getSettings().pluginDockPanelDefaultBlockId.trim() || ""
 }
 
 /**

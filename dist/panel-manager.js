@@ -39,6 +39,7 @@ export async function start(name, blockId, enableAutoDefocus) {
   defaultBlockId = blockId
   autoDefocusEnabled = enableAutoDefocus
   console.log(`[dockpanel] 面板管理模块已启动，自动脱焦：${autoDefocusEnabled}`)
+  setupSettingsWatcher()
 }
 
 /**
@@ -135,22 +136,13 @@ export function undockPanel() {
 }
 
 
-/**
- * 获取停靠的面板ID
- */
-export function getDockedPanelID() {
-  return window.pluginDockpanel.panel.id
-}
-
-/**
- * 检查是否有停靠的面板
- */
-export function hasDockedPanel() {
-  return window.pluginDockpanel.panel.id !== null
-}
-
 // 折叠同时会锁定面板，防止被跳转
 export function toggleCollapsedClass() {
+  if (!window.pluginDockpanel.panel.id) {
+    orca.notify("warn", "[dockPanel]当前没有停靠面板")
+    return
+  }
+
   if (window.pluginDockpanel.isCollapsed) {
     // 是折叠状态，则退出折叠，并恢复锁定状态
     removeCollapsed()
@@ -248,7 +240,7 @@ function cleanupDockedPanelCloseWatcher() {
 /**
  * 设置设置变更监听器
  */
-export function setupSettingsWatcher() {
+function setupSettingsWatcher() {
   if (settingsWatcherUnSubscribe) return
 
   // 使用 valtio 订阅设置变更
@@ -297,7 +289,6 @@ function cleanupSettingsWatcher() {
     console.log(`[dockpanel] 设置变更监听器已清理`)
   }
 }
-
 
 
 // 新功能，右键菜单直接打开停靠面板  2025年12月13日
