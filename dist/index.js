@@ -241,9 +241,9 @@ async function registerSettings() {
     },
     enableAutoFocus: {
       label: "启动自动聚焦",
-      description: "展开停靠面板时自动聚焦到停靠面板（默认关闭）",
+      description: "展开停靠面板时自动聚焦到停靠面板（建议开启）",
       type: "boolean",
-      defaultValue: false,
+      defaultValue: true,
     }
   }
 
