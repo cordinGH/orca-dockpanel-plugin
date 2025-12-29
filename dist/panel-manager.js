@@ -255,10 +255,17 @@ function setupSettingsWatcher() {
           }
 
           // 处理自动聚焦设置变更
-          const newState = settings?.enableAutoFocus
-          if (newState !== enableAutoFocus) {
-            enableAutoFocus = newState
+          const newAutoFocus = settings?.enableAutoFocus
+          if (newAutoFocus !== enableAutoFocus) {
+            enableAutoFocus = newAutoFocus
             console.log(`[dockpanel] 自动聚焦设置已更新: ${enableAutoFocus}`)
+          }
+
+          // 处理主页模式设置变更
+          const newHomeMode = settings?.enableHomeMode
+          if (newHomeMode !== enableAutoFocus) {
+            enableAutoFocus = newHomeMode
+            console.log(`[dockpanel] 主页模式状态已更新: ${enableAutoFocus}`)
           }
         }
       }
