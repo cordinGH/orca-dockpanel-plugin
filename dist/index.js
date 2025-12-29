@@ -144,6 +144,8 @@ export async function unload() {
   rootPanel.removeEventListener('click', dockBtnHandler)
   rootPanel.removeEventListener('contextmenu', dockBtnHandler)
   btnInfo = null
+
+  await orca.plugins.setSettingsSchema(pluginName, {})
 }
 
 
@@ -227,7 +229,8 @@ async function dockBtnHandler(e) {
  */
 async function registerSettings() {
   const settingsSchema = {
-    defaultBlockId: {
+    // 很长是为了方便其他插件订阅
+    pluginDockPanelDefaultBlockId: {
       label: "默认块ID",
       description: "单屏时，点击停靠按钮会默认停靠今日日志。也可指定一个默认块ID替代日志。",
       type: "string",

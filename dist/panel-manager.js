@@ -32,7 +32,6 @@ export async function start(name) {
   const settings = orca.state.plugins[pluginName].settings
   defaultBlockId = settings.defaultBlockId || ""
   enableHomeMode = settings.enableHomeMode || false
-  console.log(enableHomeMode)
   enableAutoFocus = settings.enableAutoFocus || false
 
 
