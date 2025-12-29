@@ -30,7 +30,7 @@ export async function start(name) {
   pluginName = name
   
   const settings = orca.state.plugins[pluginName].settings
-  defaultBlockId = settings.defaultBlockId || ""
+  defaultBlockId = settings.pluginDockPanelDefaultBlockId || ""
   enableHomeMode = settings.enableHomeMode || false
   enableAutoFocus = settings.enableAutoFocus || false
 
@@ -76,7 +76,6 @@ export async function dockCurrentPanel() {
   // 如果为主页模式，或者是只有一个面板，先在侧边打开新面板
   if (enableHomeMode || !orca.nav.isThereMoreThanOneViewPanel()) {
     // openInLastPanel API在一些全屏视图下有问题，改用addTo API
-
     if (!defaultBlockId){
       // 没设置块ID，使用今日日志
       orca.nav.addTo(orca.state.activePanel, "left", {
@@ -248,7 +247,7 @@ function setupSettingsWatcher() {
         const settings = orca.state.plugins[pluginName]?.settings;
         if (settings) {
           // 处理默认块ID设置变更
-          const newDefaultBlockId = settings?.defaultBlockId || ""
+          const newDefaultBlockId = settings?.pluginDockPanelDefaultBlockId || ""
           if (newDefaultBlockId !== defaultBlockId) {
             defaultBlockId = newDefaultBlockId
             console.log(`[dockpanel] 默认块ID设置已更新: ${defaultBlockId}`)
