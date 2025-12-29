@@ -1,6 +1,7 @@
 import * as panelManager from './panel-manager.js'
 import * as commandHandler from './command-handler.js'
-let pluginName = "orca-dockpanel"
+
+let pluginName = ""
 
 // 记录 main 元素的 padding 值
 let mainElementPaddings = {
@@ -116,12 +117,11 @@ export async function load(name) {
   orca.themes.injectCSSResource(`${pluginName}/dist/styles.css`, pluginName)
   orca.themes.injectCSSResource(`${pluginName}/dist/button.css`, pluginName)
 
-  registerSettings()
+  await registerSettings()
 
   // 启动模块
-  panelManager.start(pluginName, getDefaultBlockId(), getAutoDefocusEnabled(), getAutoFocusEnabled())
-  commandHandler.start(pluginName, panelManager)
-
+  await panelManager.start(pluginName)
+  commandHandler.start(panelManager)
   
   // 设置右上角dockpanel按钮的左右键监听
   setBtnInfo()
@@ -139,7 +139,7 @@ export async function unload() {
   orca.themes.removeCSSResources(pluginName)
 
   // 清理各个模块
-  await commandHandler.cleanup()
+  commandHandler.cleanup()
   panelManager.cleanup()
   rootPanel.removeEventListener('click', dockBtnHandler)
   rootPanel.removeEventListener('contextmenu', dockBtnHandler)
@@ -186,7 +186,7 @@ async function dockBtnHandler(e) {
 
   // 如果左键点击的是折叠的停靠面板，则展开
   if (e.button === 0 && targetPanelIsDockpanel && window.pluginDockpanel.isCollapsed) {
-    orca.commands.invokeCommand(`dockpanel.toggleDockedPanelCollapse`)
+    panelManager.toggleCollapsedClass()
     return
   }
 
@@ -210,15 +210,14 @@ async function dockBtnHandler(e) {
   // 如果是右键的按钮
   if (e.button === 2) {
     // 右键的是停靠面板则会取消停靠
-    if (targetPanelIsDockpanel) orca.commands.invokeCommand(`dockpanel.dockCurrentPanel`)
+    if (targetPanelIsDockpanel) panelManager.dockCurrentPanel()
     return
   }
 
   // 如果左键点击的是展开的停靠面板的停靠按钮，则折叠。否则则停靠对应面板
   if (targetPanelIsDockpanel) {
-    orca.commands.invokeCommand(`dockpanel.toggleDockedPanelCollapse`)
-    return
-  } else orca.commands.invokeCommand(`dockpanel.dockCurrentPanel`)
+    panelManager.toggleCollapsedClass()
+  } else panelManager.dockCurrentPanel()
 }
 
 
@@ -228,55 +227,25 @@ async function dockBtnHandler(e) {
  */
 async function registerSettings() {
   const settingsSchema = {
-    pluginDockPanelDefaultBlockId: {
+    defaultBlockId: {
       label: "默认块ID",
       description: "单屏时，点击停靠按钮会默认停靠今日日志。也可指定一个默认块ID替代日志。",
       type: "string",
       defaultValue: "",
     },
-    enableAutoDefocus: {
-      label: "启动自动脱焦",
-      description: "折叠停靠面板时自动脱离焦点，避免焦点停留在折叠面板上（默认开启）",
+    enableHomeMode: {
+      label: "启动主页模式",
+      description: "启动后始终会打开新面板。「默认块ID」若未填写则新面板为今日日志",
       type: "boolean",
-      defaultValue: true,
+      defaultValue: false,
     },
     enableAutoFocus: {
       label: "启动自动聚焦",
       description: "展开停靠面板时自动聚焦到停靠面板（默认关闭）",
       type: "boolean",
       defaultValue: false,
-    },
+    }
   }
 
   await orca.plugins.setSettingsSchema(pluginName, settingsSchema)
-  console.log(`[dockpanel] 设置界面已加载，当前默认块id：${getDefaultBlockId()}`)
-}
-
-/**
- * 获取设置值
- */
-export function getSettings() {
-  return orca.state.plugins[pluginName]?.settings || {}
-}
-
-/**
- * 获取默认块ID
- */
-export function getDefaultBlockId() {
-  return getSettings().pluginDockPanelDefaultBlockId.trim() || ""
-}
-
-/**
- * 获取自动脱焦设置
- */
-export function getAutoDefocusEnabled() {
-  const settings = getSettings()
-  return settings.enableAutoDefocus === true // 默认为false
-}
-/**
- * 获取自动聚焦设置
- */
-export function getAutoFocusEnabled() {
-  const settings = getSettings()
-  return settings.enableAutoFocus === true // 默认为true
 }

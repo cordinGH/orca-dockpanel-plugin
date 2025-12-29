@@ -3,32 +3,40 @@
  * 负责注册和管理插件命令
  */
 
-// 模块状态
-let pluginName = ""
 let panelManager = null
 
 // 快捷键常量
 const alt_q = "alt+q"
-// const c_alt_q = "ctrl+alt+q"
+let commandName = null
 
 /**
  * 启动模块
  */
-export async function start(name, pm) {
-  pluginName = name
+export function start(pm) {
+  commandName = {
+    dock: 'dockpanel.dockCurrentPanel',
+    toggle: 'dockpanel.toggleDockedPanelCollapse',
+    menuOpen: 'dockpanel.openInDockedpanel'
+  }
   panelManager = pm
-  // 注册插件命令
+
   registerCommands()
+
+  assignDefaultShortcuts()
 }
 
 /**
  * 清理模块
  */
-export async function cleanup() {
-  // 清理注册的命令
-  cleanupCommands()
+export function cleanup() {
+  // 清理命令
+  orca.commands.unregisterCommand(commandName.dock)
+  orca.commands.unregisterCommand(commandName.toggle)
 
-  console.log(`[dockpanel] 命令处理模块已清理`)
+  orca.blockMenuCommands.unregisterBlockMenuCommand(commandName.menuOpen);
+  
+  // 清理快捷键 - 重置为默认状态
+  orca.shortcuts.reset(commandName.toggle)
 }
 
 /**
@@ -37,22 +45,20 @@ export async function cleanup() {
 function registerCommands() {
   // 停靠当前面板
   orca.commands.registerCommand(
-    `dockpanel.dockCurrentPanel`,
+    commandName.dock,
     () => panelManager.dockCurrentPanel(),
     "切换当前面板的停靠状态（dock）"
   )
 
   // 切换停靠面板的收起/展开状态
   orca.commands.registerCommand(
-    `dockpanel.toggleDockedPanelCollapse`,
+    commandName.toggle,
     () => panelManager.toggleCollapsedClass(),
     "隐藏/弹出停靠面板（dock）"
   )
 
-  assignDefaultShortcuts()
-
   // 新功能，右键菜单直接打开停靠面板  2025年12月13日
-  orca.blockMenuCommands.registerBlockMenuCommand("dockpanel.openInDockedpanel", {
+  orca.blockMenuCommands.registerBlockMenuCommand(commandName.menuOpen, {
     worksOnMultipleBlocks: false,
     render: (blockId, rootBlockId, close) => {
         const { createElement } = window.React;
@@ -72,52 +78,15 @@ function registerCommands() {
  * 分配默认快捷键
  */
 async function assignDefaultShortcuts() {
-  try {
     // 等待1秒确保快捷键列表加载完毕
     await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // 通用快捷键分配函数
-    async function assignShortcut(shortcut, dockPanelCommand, description, keyName) {
-      const existingCommand = orca.state.shortcuts[shortcut]
-      
-      if (existingCommand && existingCommand !== dockPanelCommand) {
-        const lowerCommand = existingCommand.toLowerCase()
-        const isDockPanelCommand = (lowerCommand.includes("dock") && lowerCommand.includes("panel"))
-        
-        if (isDockPanelCommand) {
-          console.log(`[dockpanel] ${keyName} 被 dockpanel其他版本占用，故覆盖分配`)
-        } else {
-          console.warn(`[dockpanel] ${keyName} 已被占用: ${existingCommand}`)
-          orca.notify("warn", `默认快捷键${keyName}分配失败，请手动分配`)
-          return false
-        }
-      }
-      
-      await orca.shortcuts.assign(shortcut, dockPanelCommand)
-      orca.notify("success", `已为dockpanel插件「${description}」，分配闲置快捷键 ${keyName}`)
-      return true
+    const existingCommand = orca.state.shortcuts[alt_q]
+    if (!existingCommand) {
+      orca.shortcuts.assign(alt_q, commandName.toggle)
+      orca.notify("success", `[dockpanel] 已为「隐藏/弹出停靠面板」分配闲置快捷键Alt + Q`)
+    } else if (existingCommand === commandName.toggle) {
+      orca.notify("success", `[dockpanel]「隐藏/弹出停靠面板」快捷键 Alt + Q`)
+    } else {
+      orca.notify("info", `[dockpanel] Alt + Q 已占用，请自行为「隐藏/弹出停靠面板」配置快捷键`)
     }
-    
-    // 分配快捷键
-    await assignShortcut(alt_q, `dockpanel.toggleDockedPanelCollapse`, "隐藏/弹出停靠面板", "Alt+Q")
-    // await assignShortcut(c_alt_q, `dockpanel.dockCurrentPanel`, "切换当前面板的停靠状", "Ctrl+Alt+Q")
-    
-  } catch (error) {
-    console.warn(`[dockpanel] 快捷键分配失败:`, error)
-  }
-}
-
-/**
- * 清理注册的命令和快捷键
- */
-async function cleanupCommands() {
-  // 清理命令
-  orca.commands.unregisterCommand(`dockpanel.dockCurrentPanel`)
-  orca.commands.unregisterCommand(`dockpanel.toggleDockedPanelCollapse`)
-
-  orca.blockMenuCommands.unregisterBlockMenuCommand("dockpanel.openInDockedpanel");
-  
-  // 清理快捷键 - 重置为默认状态
-  await orca.shortcuts.reset(`dockpanel.toggleDockedPanelCollapse`)
-  // await orca.shortcuts.reset(`dockpanel.dockCurrentPanel`)
 }

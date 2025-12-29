@@ -10,36 +10,36 @@ let dockedPanelCloseWatcher = null
 let dockedPanelIdUnSubscribe = null
 
 let defaultBlockId = ""
-let autoDefocusEnabled = false
-let autoFocusEnabled = true
+let enableAutoFocus = true
+let enableHomeMode = false
 let settingsWatcherUnSubscribe = null
 
 // 根面板
 let rootRow = document.querySelector("#main>.orca-panels-row")
 
-// 创建停靠面板状态的 Proxy 包装器（只暴露 id）
-// 使用 Valtio 的 proxy 创建响应式对象，以支持订阅
+// 准备全局对象，方便其他插件使用。Valtio.proxy创建响应式对象，方便其他插件订阅变化。
 window.pluginDockpanel = {}
 window.pluginDockpanel.panel = window.Valtio.proxy({
   id: null
 })
-
-// 暴露折叠状态到全局，供其他插件访问
+// 暴露折叠状态到全局，供其他插件查看
 window.pluginDockpanel.isCollapsed = false
 
+export async function start(name) {
 
-export async function start(name, blockId, enableAutoDefocus) {
   pluginName = name
-  window.pluginDockpanel.panel.id = null
-  window.pluginDockpanel.isCollapsed = false
   
+  const settings = orca.state.plugins[pluginName].settings
+  defaultBlockId = settings.defaultBlockId || ""
+  enableHomeMode = settings.enableHomeMode || false
+  console.log(enableHomeMode)
+  enableAutoFocus = settings.enableAutoFocus || false
+
+
+  setupSettingsWatcher()
+
   // 监听停靠面板关闭事件
   setupDockedPanelCloseWatcher()
-
-  defaultBlockId = blockId
-  autoDefocusEnabled = enableAutoDefocus
-  console.log(`[dockpanel] 面板管理模块已启动，自动脱焦：${autoDefocusEnabled}`)
-  setupSettingsWatcher()
 }
 
 /**
@@ -74,8 +74,8 @@ export async function dockCurrentPanel() {
     undockPanel()
   }
 
-  // 如果只有一个面板，先在侧边打开新面板
-  if (!orca.nav.isThereMoreThanOneViewPanel()) {
+  // 如果为主页模式，或者是只有一个面板，先在侧边打开新面板
+  if (enableHomeMode || !orca.nav.isThereMoreThanOneViewPanel()) {
     // openInLastPanel API在一些全屏视图下有问题，改用addTo API
 
     if (!defaultBlockId){
@@ -90,7 +90,7 @@ export async function dockCurrentPanel() {
       const block = await orca.invokeBackend("get-block", defaultBlockId)
       // 填写了默认块id，但是没找到，也使用今日日志
       if (!block) {
-        orca.notify("warn", `块ID ${defaultBlockId} 已被删除，使用默认的今日日志`, pluginName)
+        orca.notify("warn", `[dockpanel] 块ID ${defaultBlockId} 已被删除，使用默认的今日日志`)
         orca.nav.addTo(orca.state.activePanel, "left", {
           view: "journal",
           viewArgs: {date: new Date(new Date().toDateString())},
@@ -148,7 +148,7 @@ export function toggleCollapsedClass() {
     removeCollapsed()
     if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
 
-    if (autoFocusEnabled) orca.nav.switchFocusTo(window.pluginDockpanel.panel.id)
+    if (enableAutoFocus) orca.nav.switchFocusTo(window.pluginDockpanel.panel.id)
 
   } else {
     // 没有折叠，则进入折叠状态
@@ -158,10 +158,8 @@ export function toggleCollapsedClass() {
     if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
   
     // 折叠自动脱离焦点
-    if (autoDefocusEnabled) {
-      if (window.pluginDockpanel.panel.id != orca.state.activePanel) return
-      orca.nav.focusNext()
-    }
+    if (window.pluginDockpanel.panel.id != orca.state.activePanel) return
+    orca.nav.focusNext()
   }
 }
 
@@ -250,13 +248,6 @@ function setupSettingsWatcher() {
       () => {
         const settings = orca.state.plugins[pluginName]?.settings;
         if (settings) {
-          // 处理自动脱焦设置变更
-          const newAutoDefocusEnabled = settings?.enableAutoDefocus === true
-          if (newAutoDefocusEnabled !== autoDefocusEnabled) {
-            autoDefocusEnabled = newAutoDefocusEnabled
-            console.log(`[dockpanel] 自动脱焦设置已更新: ${autoDefocusEnabled}`)
-          }
-
           // 处理默认块ID设置变更
           const newDefaultBlockId = settings?.defaultBlockId || ""
           if (newDefaultBlockId !== defaultBlockId) {
@@ -265,10 +256,10 @@ function setupSettingsWatcher() {
           }
 
           // 处理自动聚焦设置变更
-          const newAutoFocusEnabled = settings?.enableAutoFocus === true
-          if (newAutoFocusEnabled !== autoFocusEnabled) {
-            autoFocusEnabled = newAutoFocusEnabled
-            console.log(`[dockpanel] 自动聚焦设置已更新: ${autoFocusEnabled}`)
+          const newState = settings?.enableAutoFocus
+          if (newState !== enableAutoFocus) {
+            enableAutoFocus = newState
+            console.log(`[dockpanel] 自动聚焦设置已更新: ${enableAutoFocus}`)
           }
         }
       }
