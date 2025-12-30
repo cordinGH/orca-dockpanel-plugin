@@ -149,7 +149,7 @@ async function getBlockTarget(blockId) {
   // 如果是日志块id，则转为日志视图的target
   const target = {
     view: blockType === 'journal'? 'journal' : 'block',
-    viewArgs: blockType === 'journal'? {date: blockRepr.value.date} : {blockId: blockId},
+    viewArgs: blockType === 'journal'? {date: blockRepr.value.date} : {blockId: Number(blockId)},
     viewState: {}
   }
 
