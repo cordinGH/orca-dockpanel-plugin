@@ -334,8 +334,6 @@ export async function openInDockedpanel(blockId) {
     return
   }
 
-  // 不存在就起一个
-  orca.nav.addTo(orca.state.activePanel, "left", target)
-
-  dockPanel(orca.state.activePanel)
+  // 不存在就新起一个
+  createDockedPanel(defaultBlockId)
 }
