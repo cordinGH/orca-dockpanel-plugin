@@ -1,17 +1,16 @@
 import * as panelManager from './panel-manager.js'
 import * as commandHandler from './command-handler.js'
+import * as buttonManager from './button-manager.js'
 
 let pluginName = ""
 
-// 记录 main 元素的 padding 值
+// 记录 main 元素的 padding 值(px)
 let mainElementPaddings = {
   top: 0,
   bottom: 0,
   left: 0,
   right: 0
 }
-
-let rootPanel = document.querySelector("#main>.orca-panels-row")
 
 /**
  * 记录 main 元素的 padding 值
@@ -117,16 +116,13 @@ export async function load(name) {
   orca.themes.injectCSSResource(`${pluginName}/dist/styles.css`, pluginName)
   orca.themes.injectCSSResource(`${pluginName}/dist/button.css`, pluginName)
 
+  // 注册设置选项
   await registerSettings()
 
   // 启动模块
   await panelManager.start(pluginName)
   commandHandler.start(panelManager)
-  
-  // 设置右上角dockpanel按钮的左右键监听
-  setBtnInfo()
-  rootPanel.addEventListener('click', dockBtnHandler)
-  rootPanel.addEventListener('contextmenu', dockBtnHandler)
+  buttonManager.start(panelManager)
   
   // 记录main元素的padding作为挂起面板的基准定位。
   recordMainElementPaddings()
@@ -141,88 +137,11 @@ export async function unload() {
   // 清理各个模块
   commandHandler.cleanup()
   panelManager.cleanup()
-  rootPanel.removeEventListener('click', dockBtnHandler)
-  rootPanel.removeEventListener('contextmenu', dockBtnHandler)
-  btnInfo = null
+  buttonManager.cleanup()
 
+  // 清空设置选项
   await orca.plugins.setSettingsSchema(pluginName, {})
 }
-
-
-// 按钮的位置信息
-let btnInfo = null
-// 获取按钮的位置信息
-function setBtnInfo(){
-  const root = document.documentElement;
-  const rootComputedStyle = getComputedStyle(root);
-  const rootFontSize = parseFloat(rootComputedStyle.fontSize)
-
-  // 获取自定义尺寸
-  const getOrcaCustomLen = (propNameString) => {
-    return parseFloat(rootComputedStyle.getPropertyValue(propNameString).trim()) * rootFontSize
-  }
-
-  const orcaSpacingMd = getOrcaCustomLen("--orca-spacing-md")
-  const orcaSpacingSm = getOrcaCustomLen("--orca-spacing-sm")
-  const orcaFontsizeLg = getOrcaCustomLen("--orca-fontsize-lg")
-  const orcaSpacing2xs = getOrcaCustomLen("--orca-spacing-2xs")
-
-  btnInfo = {
-    btnRight: orcaSpacingMd + orcaSpacingSm,
-    btnTop: 0.5 * rootFontSize,
-    btnWight: orcaFontsizeLg + 2 * orcaSpacing2xs,
-    btnHeight: orcaFontsizeLg + 2 * orcaSpacingSm
-  }
-}
-
-
-/**
- * 处理停靠面板按钮点击事件
- */
-async function dockBtnHandler(e) {
-  const target = e.target
-  // 如果点击的不是面板，不处理
-  if (!target?.classList.contains("orca-panel")) return
-
-  const targetPanelIsDockpanel = target.dataset.panelId === window.pluginDockpanel.panel.id
-
-  // 如果左键点击的是折叠的停靠面板，则展开
-  if (e.button === 0 && targetPanelIsDockpanel && window.pluginDockpanel.isCollapsed) {
-    panelManager.toggleCollapsedClass()
-    return
-  }
-
-  // 获取点按信息
-  const rect = target.getBoundingClientRect()
-
-  // 计算按钮相对于面板左边和上边的起始距离
-  const { btnRight, btnTop, btnWight, btnHeight } = btnInfo;
-  const btnXStart = rect.width - btnRight - btnWight
-  const btnYStart = btnTop
-
-  // 获取点击位置相对于面板左边和上边的距离
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-
-  // 检查点击是否在按钮区域内
-  if (x < btnXStart || x > btnXStart + btnWight || y < btnYStart || y > btnYStart + btnHeight) return
-  
-  e.stopPropagation()
-
-  // 如果是右键的按钮
-  if (e.button === 2) {
-    // 右键的是停靠面板则会取消停靠
-    if (targetPanelIsDockpanel) panelManager.dockCurrentPanel()
-    return
-  }
-
-  // 如果左键点击的是展开的停靠面板的停靠按钮，则折叠。否则则停靠对应面板
-  if (targetPanelIsDockpanel) {
-    panelManager.toggleCollapsedClass()
-  } else panelManager.dockCurrentPanel()
-}
-
-
 
 /**
  * 注册设置模式
@@ -232,16 +151,16 @@ async function registerSettings() {
     // 很长是为了方便其他插件订阅
     pluginDockPanelDefaultBlockId: {
       label: "默认块ID",
-      description: "单屏时，点击停靠按钮会默认停靠今日日志。也可指定一个默认块ID替代日志。",
+      description: "停靠面板的默认块id。若未填写则自动定向为今日日志。",
       type: "string",
       defaultValue: "",
     },
-    enableHomeMode: {
-      label: "启动主页模式",
-      description: "启动后始终会打开新面板。「默认块ID」若未填写则新面板为今日日志",
-      type: "boolean",
-      defaultValue: false,
-    },
+    // enableHomeMode: {
+    //   label: "启动主页模式",
+    //   description: "启动后始终会打开新面板。「默认块ID」若未填写则新面板为今日日志",
+    //   type: "boolean",
+    //   defaultValue: false,
+    // },
     enableAutoFocus: {
       label: "启动自动聚焦",
       description: "展开停靠面板时自动聚焦到停靠面板（建议开启）",

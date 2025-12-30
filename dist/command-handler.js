@@ -7,58 +7,47 @@ let panelManager = null
 
 // 快捷键常量
 const alt_q = "alt+q"
-let commandName = null
+let commands = null
+let blockMenuCommand = ""
 
-/**
- * 启动模块
- */
-export function start(pm) {
-  commandName = {
-    dock: 'dockpanel.dockCurrentPanel',
-    toggle: 'dockpanel.toggleDockedPanelCollapse',
-    menuOpen: 'dockpanel.openInDockedpanel'
-  }
-  panelManager = pm
-
-  registerCommands()
-
-  assignDefaultShortcuts()
-}
-
-/**
- * 清理模块
- */
-export function cleanup() {
-  // 清理命令
-  orca.commands.unregisterCommand(commandName.dock)
-  orca.commands.unregisterCommand(commandName.toggle)
-
-  orca.blockMenuCommands.unregisterBlockMenuCommand(commandName.menuOpen);
-  
-  // 清理快捷键 - 重置为默认状态
-  orca.shortcuts.reset(commandName.toggle)
-}
-
-/**
- * 注册插件命令
- */
+// 注册插件命令
 function registerCommands() {
-  // 停靠当前面板
-  orca.commands.registerCommand(
-    commandName.dock,
-    () => panelManager.dockCurrentPanel(),
-    "切换当前面板的停靠状态（dock）"
-  )
+  
+  commands = {
+    // 停靠当前面板。已存在则更换。
+    dock: {
+      name: 'dockpanel.dockCurrentPanel',
+      fn: panelManager.dockCurrentPanel,
+      description: "[dockpanel] 将当前面板转为停靠面板（已存在停靠面板则更替）"
+    },
 
-  // 切换停靠面板的收起/展开状态
-  orca.commands.registerCommand(
-    commandName.toggle,
-    () => panelManager.toggleCollapsedClass(),
-    "隐藏/弹出停靠面板（dock）"
-  )
+    // 统一的切出/切入，配合快捷键可以达到主页模式的效果
+    toggle: {
+      name: 'dockpanel.toggleDockedPanel',
+      fn: panelManager.toggleDockedPanel,
+      description: "[dockpanel] 切出/隐藏停靠面板（若当前无停靠面板则新建）"
+    },
+    
+    // 取消停靠面板回归正常显示（单一功能，降低命令区分的心智负担​）
+    unDocked: {
+      name: 'dockpanel.unDocked',
+      fn: panelManager.undockPanel,
+      description: "[dockpanel] 退出停靠"
+    },
 
+    gotoDefaultBlock: {
+      name: 'dockpanel.gotoDefaultBlockOnDockedPanel',
+      fn: panelManager.gotoDefaultBlockOnDockedPanel,
+      description: "[dockpanel] 在停靠面板中前往默认块（若当前无停靠面板则新建）"
+    }
+  }
+
+  blockMenuCommand = 'dockpanel.openInDockedpanel'
+
+  Object.values(commands).forEach(({name,fn,description}) => orca.commands.registerCommand(name, fn, description))
+  
   // 新功能，右键菜单直接打开停靠面板  2025年12月13日
-  orca.blockMenuCommands.registerBlockMenuCommand(commandName.menuOpen, {
+  orca.blockMenuCommands.registerBlockMenuCommand(blockMenuCommand, {
     worksOnMultipleBlocks: false,
     render: (blockId, rootBlockId, close) => {
         const { createElement } = window.React;
@@ -74,19 +63,34 @@ function registerCommands() {
   })
 }
 
-/**
- * 分配默认快捷键
- */
+
+// 分配默认快捷键
 async function assignDefaultShortcuts() {
     // 等待1秒确保快捷键列表加载完毕
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    const existingCommand = orca.state.shortcuts[alt_q]
-    if (!existingCommand) {
-      orca.shortcuts.assign(alt_q, commandName.toggle)
-      orca.notify("success", `[dockpanel] 已为「隐藏/弹出停靠面板」分配闲置快捷键Alt + Q`)
-    } else if (existingCommand === commandName.toggle) {
-      orca.notify("success", `[dockpanel]「隐藏/弹出停靠面板」快捷键 Alt + Q`)
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    const shortcut = orca.state.shortcuts[commands.toggle.name]
+    if (!shortcut) {
+      orca.notify("info", '[dockpanel] 「切出/隐藏停靠面板」暂无快捷键，推荐配置')
     } else {
-      orca.notify("info", `[dockpanel] Alt + Q 已占用，请自行为「隐藏/弹出停靠面板」配置快捷键`)
+      orca.notify("success", `[dockpanel] 「切出/隐藏停靠面板」快捷键为${shortcut}`)
     }
+}
+
+
+export function start(pm) {
+  panelManager = pm
+
+  registerCommands()
+
+  assignDefaultShortcuts()
+}
+
+export function cleanup() {
+  // 清理命令
+  Object.values(commands).forEach(command => orca.commands.unregisterCommand(command.name))
+
+  orca.blockMenuCommands.unregisterBlockMenuCommand(blockMenuCommand);
+
+  // 清理快捷键 - 重置为默认状态
+  orca.shortcuts.reset(commands.toggle.name)
 }
