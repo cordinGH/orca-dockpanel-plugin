@@ -14,7 +14,7 @@ let enableAutoFocus = true
 let settingsWatcherUnSubscribe = null
 
 // 根面板
-let rootRow = document.querySelector("#main>.orca-panels-row")
+let rootRow = null
 
 // 准备全局对象，方便其他插件使用。Valtio.proxy创建响应式对象，方便其他插件订阅变化。
 window.pluginDockpanel = {}
@@ -27,10 +27,11 @@ window.pluginDockpanel.isCollapsed = false
 export async function start(name) {
 
   pluginName = name
+  rootRow =  document.querySelector("#main>.orca-panels-row")
   
   const settings = orca.state.plugins[pluginName].settings
-  defaultBlockId = settings.pluginDockPanelDefaultBlockId || ""
-  enableAutoFocus = settings.enableAutoFocus || false
+  defaultBlockId = settings.pluginDockPanelDefaultBlockId
+  enableAutoFocus = settings.enableAutoFocus
 
 
   setupSettingsWatcher()
@@ -55,20 +56,16 @@ export function cleanup() {
 
   // 如果有停靠的面板，先取消停靠
   if (window.pluginDockpanel.panel.id) undockPanel()
-  console.log(`[dockpanel] 面板管理模块已清理`)
+
+  rootRow = null
 }
 
 
 // 停靠当前面板
-export async function dockCurrentPanel() {
+export async function dockPanel(panelId) {
+
   // 如果当前已存在停靠面板，则取消
-  if (window.pluginDockpanel.panel.id) {
-    if (window.pluginDockpanel.panel.id === orca.state.activePanel) {
-      undockPanel()
-      return
-    }
-    undockPanel()
-  }
+  if (window.pluginDockpanel.panel.id) undockPanel()
 
   // openInLastPanel API在一些全屏视图下有问题，改用addTo API
 
@@ -78,23 +75,27 @@ export async function dockCurrentPanel() {
     return
   }
 
-  const currentPanelId = orca.state.activePanel
+  // const currentPanelId = orca.state.activePanel
   const rootPanelChildPanelNumber = orca.state.panels.children.length
-  const firstChildPanel = orca.state.panels.children[0]
+  const rootPanelChildren = orca.state.panels.children
+  const lastChildPanel = rootPanelChildren[rootPanelChildPanelNumber - 1]
 
   // 当根row的只有一个colChild且col内只有2个普通面板，禁止停靠，因为会破坏结构
-  if (rootPanelChildPanelNumber === 1 && firstChildPanel.direction === '"column') {
-    const children = firstChildPanel.children
+  if (rootPanelChildPanelNumber === 1 && lastChildPanel.direction === '"column') {
+    const children = lastChildPanel.children
     if (children.length === 2 && children.every(child => child.view)) {
       orca.notify("warn", "当前布局特殊，不支持停靠")
       return
     }
   }
 
-  // 如果当前面板不是第一个面板，则移动到第一个位置
-  if (firstChildPanel.id !== currentPanelId) orca.nav.move(currentPanelId, firstChildPanel.id, "left")
+  // 如果当前面板不是最后一个面板，则移动到最后位置
+  if (lastChildPanel.id !== panelId) orca.nav.move(panelId, lastChildPanel.id, "right")
 
-  setDockPanel(currentPanelId)
+  
+  // 奇奇怪怪的问题，如果不丢到最后执行，调试发现样式设置成功后，又被刷掉了
+  setTimeout(()=>setDockPanel(panelId), 0)
+  
 }
 
 /**
@@ -110,19 +111,24 @@ export function undockPanel() {
 }
 
 
-// export function gotoHomeOndockedPanel() {
-export async function gotoDefaultBlockOnDockedPanel() {
-  if (!window.pluginDockpanel.panel.id) {
-    await createDockedPanel(defaultBlockId)
-    return
-  }
+// 在停靠面板前往默认块
+// export async function gotoDefaultBlockOnDockedPanel() {
+//   if (!window.pluginDockpanel.panel.id) {
+//     await createDockedPanel(defaultBlockId)
+//     return
+//   }
 
-  if (window.pluginDockpanel.isCollapsed) toggleDockedPanel()
+//   if (window.pluginDockpanel.isCollapsed) toggleDockedPanel()
   
+//   const target = await getBlockTarget(defaultBlockId)
+
+//   orca.nav.goTo(target.view, target.viewArgs, window.pluginDockpanel.panel.id)
+// }
+
+// 在当前面板前往默认块
+export async function gotoDefaultBlockOnCurrentPanel() {
   const target = await getBlockTarget(defaultBlockId)
-
-  orca.nav.goTo(target.view, target.viewArgs, window.pluginDockpanel.panel.id)
-
+  orca.nav.goTo(target.view, target.viewArgs, orca.state.activePanel)
 }
 
 
@@ -160,12 +166,11 @@ async function createDockedPanel(blockId) {
 
   // 新面板target
   let target = await getBlockTarget(blockId)
-
-  const firstPanelId = orca.state.panels.children[0].id
-  const panelId = orca.nav.addTo(firstPanelId, "left", target)
+  const rootPanelChildren = orca.state.panels.children
+  const lastPanelId = rootPanelChildren[rootPanelChildren.length - 1].id
+  const panelId = orca.nav.addTo(lastPanelId, "right", target)
   setDockPanel(panelId)
 }
-
 
 
 // 切出停靠面板，没有就新建一个
@@ -281,14 +286,14 @@ function setupSettingsWatcher() {
         const settings = orca.state.plugins[pluginName]?.settings;
         if (settings) {
           // 处理默认块ID设置变更
-          const newDefaultBlockId = settings?.pluginDockPanelDefaultBlockId || ""
+          const newDefaultBlockId = settings.pluginDockPanelDefaultBlockId || ""
           if (newDefaultBlockId !== defaultBlockId) {
             defaultBlockId = newDefaultBlockId
             console.log(`[dockpanel] 默认块ID设置已更新: ${defaultBlockId}`)
           }
 
           // 处理自动聚焦设置变更
-          const newAutoFocus = settings?.enableAutoFocus
+          const newAutoFocus = settings.enableAutoFocus
           if (newAutoFocus !== enableAutoFocus) {
             enableAutoFocus = newAutoFocus
             console.log(`[dockpanel] 自动聚焦设置已更新: ${enableAutoFocus}`)
@@ -332,5 +337,5 @@ export async function openInDockedpanel(blockId) {
   // 不存在就起一个
   orca.nav.addTo(orca.state.activePanel, "left", target)
 
-  dockCurrentPanel()
+  dockPanel(orca.state.activePanel)
 }

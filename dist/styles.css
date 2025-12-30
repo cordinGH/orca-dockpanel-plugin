@@ -40,7 +40,7 @@
 
 /* ———————————————————————————————————————————————————— */
 
-.has-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
+.has-docked-panel> .orca-panel:nth-last-child(1 of .orca-panel){
   position: absolute;
   min-width: 0 !important;
   min-height: 0 !important;
@@ -76,11 +76,6 @@
     padding: 2px;
   }
   
-  /* 隐藏尺寸调节器和 判定拖放行为的 覆盖层 */
-  &>.resizer, &>.orca-panel-overlay{
-    display: none;
-  }
-  
   /* 悬停效果边框变色，缩小阴影*/
   &:hover {
     border-color: var(--orca-color-primary-5);
@@ -88,8 +83,13 @@
   }
 }
 
+/* 移除左侧面板多余的拖拽条 */
+.has-docked-panel> .orca-panel:nth-last-child(2 of .orca-panel)>:is(.resizer, .orca-panel-overlay) {    
+    display: none;
+}
+
 /* 折叠状态*/
-.has-docked-panel.collapsed-docked-panel> .orca-panel:nth-child(1 of .orca-panel){
+.has-docked-panel.collapsed-docked-panel> .orca-panel:nth-last-child(1 of .orca-panel){
   /* translate: -.375rem 2.5rem; */
   transform-origin:right top;
   translate: calc(.3125rem - var(--docked-panel-base-right));

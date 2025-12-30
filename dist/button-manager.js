@@ -53,7 +53,7 @@ function setBtnInfo() {
 /**
  * 处理停靠面板按钮点击事件
  */
-async function dockBtnHandler(e) {
+function dockBtnHandler(e) {
     const target = e.target
     // 如果点击的不是面板，不处理
     if (!target?.classList.contains("orca-panel")) return
@@ -92,5 +92,5 @@ async function dockBtnHandler(e) {
     // 如果左键的是展开的停靠面板的停靠按钮，则折叠。否则则停靠对应面板
     if (targetPanelIsDockpanel) {
         panelManager.toggleDockedPanel()
-    } else panelManager.dockCurrentPanel()
+    } else panelManager.dockPanel(orca.state.activePanel)
 }

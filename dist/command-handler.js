@@ -15,11 +15,11 @@ function registerCommands() {
   
   commands = {
     // 停靠当前面板。已存在则更换。
-    dock: {
-      name: 'dockpanel.dockCurrentPanel',
-      fn: panelManager.dockCurrentPanel,
-      description: "[dockpanel] 将当前面板转为停靠面板（已存在停靠面板则更替）"
-    },
+    // dock: {
+    //   name: 'dockpanel.dockCurrentPanel',
+    //   fn: panelManager.dockCurrentPanel,
+    //   description: "[dockpanel] 将当前面板转为停靠面板（已存在停靠面板则更替）"
+    // },
 
     // 统一的切出/切入，配合快捷键可以达到主页模式的效果
     toggle: {
@@ -35,11 +35,17 @@ function registerCommands() {
       description: "[dockpanel] 退出停靠"
     },
 
-    gotoDefaultBlock: {
-      name: 'dockpanel.gotoDefaultBlockOnDockedPanel',
-      fn: panelManager.gotoDefaultBlockOnDockedPanel,
-      description: "[dockpanel] 在停靠面板中前往默认块（若当前无停靠面板则新建）"
-    }
+    // gotoDefaultBlock: {
+    //   name: 'dockpanel.gotoDefaultBlockOnDockedPanel',
+    //   fn: panelManager.gotoDefaultBlockOnDockedPanel,
+    //   description: "[dockpanel] 在停靠面板前往默认块（若当前无停靠面板则新建）"
+    // }, 
+
+    gotoDefaultBlockOnCurrentPanel: {
+      name: 'dockpanel.gotoDefaultBlockOnCurrentPanel',
+      fn: panelManager.gotoDefaultBlockOnCurrentPanel,
+      description: "[dockpanel] 在当前面板前往默认块"
+    },
   }
 
   blockMenuCommand = 'dockpanel.openInDockedpanel'

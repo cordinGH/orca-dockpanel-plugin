@@ -155,12 +155,6 @@ async function registerSettings() {
       type: "string",
       defaultValue: "",
     },
-    // enableHomeMode: {
-    //   label: "启动主页模式",
-    //   description: "启动后始终会打开新面板。「默认块ID」若未填写则新面板为今日日志",
-    //   type: "boolean",
-    //   defaultValue: false,
-    // },
     enableAutoFocus: {
       label: "启动自动聚焦",
       description: "展开停靠面板时自动聚焦到停靠面板（建议开启）",

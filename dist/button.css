@@ -24,9 +24,15 @@
     user-select: none;
 }
 
-#main>.orca-panels-row.has-docked-panel> .orca-panel:nth-child(1 of .orca-panel):before{
-    content:"\f1f1";
+#main>.orca-panels-row.has-docked-panel> .orca-panel:nth-last-child(1 of .orca-panel):before{
     color: var(--orca-color-primary-5);
+}
+#main>.orca-panels-row.has-docked-panel> .orca-panel:nth-last-child(1 of .orca-panel)>.orca-hideable>.orca-panel-drag-handle{
+    display: none;
+
+    &~*{
+        translate: 0 -1rem;
+    }
 }
 
 #main>.orca-panels-row .orca-panel .orca-panel-drag-handle, .orca-panel-drag-handle~*{
@@ -92,7 +98,7 @@
 
 /* 修复虎鲸1.55版本全屏白板的样式bug */
 /* 2025-12-12，来源：@sethyuan */
-.orca-block-editor:has(> .orca-whiteboard.orca-maximized) {
+/* .orca-block-editor:has(> .orca-whiteboard.orca-maximized) {
     position: static;
   }
   
@@ -100,4 +106,4 @@
     position: absolute;
     top: 0;
     height: 100%;
-  }
+  } */
