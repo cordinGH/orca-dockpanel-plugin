@@ -11,7 +11,6 @@ let dockedPanelIdUnSubscribe = null
 
 let defaultBlockId = ""
 let enableAutoFocus = true
-let enableHomeMode = false
 let settingsWatcherUnSubscribe = null
 
 // 根面板
@@ -31,7 +30,6 @@ export async function start(name) {
   
   const settings = orca.state.plugins[pluginName].settings
   defaultBlockId = settings.pluginDockPanelDefaultBlockId || ""
-  enableHomeMode = settings.enableHomeMode || false
   enableAutoFocus = settings.enableAutoFocus || false
 
 
@@ -60,9 +58,8 @@ export function cleanup() {
   console.log(`[dockpanel] 面板管理模块已清理`)
 }
 
-/**
- * 停靠当前面板
- */
+
+// 停靠当前面板
 export async function dockCurrentPanel() {
   // 如果当前已存在停靠面板，则取消
   if (window.pluginDockpanel.panel.id) {
@@ -73,51 +70,30 @@ export async function dockCurrentPanel() {
     undockPanel()
   }
 
-  // 如果为主页模式，或者是只有一个面板，先在侧边打开新面板
-  if (enableHomeMode || !orca.nav.isThereMoreThanOneViewPanel()) {
-    // openInLastPanel API在一些全屏视图下有问题，改用addTo API
-    if (!defaultBlockId){
-      // 没设置块ID，使用今日日志
-      orca.nav.addTo(orca.state.activePanel, "left", {
-        view: "journal",
-        viewArgs: {date: new Date(new Date().toDateString())},
-        viewState: {}
-      })
-    } else {
+  // openInLastPanel API在一些全屏视图下有问题，改用addTo API
 
-      const block = await orca.invokeBackend("get-block", defaultBlockId)
-      // 填写了默认块id，但是没找到，也使用今日日志
-      if (!block) {
-        orca.notify("warn", `[dockpanel] 块ID ${defaultBlockId} 已被删除，使用默认的今日日志`)
-        orca.nav.addTo(orca.state.activePanel, "left", {
-          view: "journal",
-          viewArgs: {date: new Date(new Date().toDateString())},
-          viewState: {}
-        })
-      } else {
-        orca.nav.addTo(orca.state.activePanel, "left", {
-          view: "block",
-          viewArgs: {blockId: defaultBlockId},
-          viewState: {}
-        })
-      }
-    }
-  }
-
-  const currentPanelId = orca.state.activePanel
-  const firstPanel = orca.state.panels.children[0]
-  const numberOfLevel1Panel = orca.state.panels.children.length
-
-  // 当根row的只有一个colChild且col内只有2个普通面板，禁止停靠，因为会破坏结构
-  if (numberOfLevel1Panel === 1 && firstPanel.children && firstPanel.children.length === 2 && firstPanel.children.every(child => child.view)) {
-    orca.notify("warn", "当前布局特殊，不支持停靠")
+  // 唯一块直接新建
+  if (!orca.nav.isThereMoreThanOneViewPanel()) {
+    await createDockedPanel(defaultBlockId)
     return
   }
 
-  // 如果当前面板不是第一个面板，则移动到第一个位置
-  if (firstPanel.id !== currentPanelId) await orca.nav.move(currentPanelId, firstPanel.id, "left")
+  const currentPanelId = orca.state.activePanel
+  const rootPanelChildPanelNumber = orca.state.panels.children.length
+  const firstChildPanel = orca.state.panels.children[0]
 
-  // 停靠当前面板
+  // 当根row的只有一个colChild且col内只有2个普通面板，禁止停靠，因为会破坏结构
+  if (rootPanelChildPanelNumber === 1 && firstChildPanel.direction === '"column') {
+    const children = firstChildPanel.children
+    if (children.length === 2 && children.every(child => child.view)) {
+      orca.notify("warn", "当前布局特殊，不支持停靠")
+      return
+    }
+  }
+
+  // 如果当前面板不是第一个面板，则移动到第一个位置
+  if (firstChildPanel.id !== currentPanelId) orca.nav.move(currentPanelId, firstChildPanel.id, "left")
+
   setDockPanel(currentPanelId)
 }
 
@@ -134,40 +110,101 @@ export function undockPanel() {
 }
 
 
-// 折叠同时会锁定面板，防止被跳转
-export function toggleCollapsedClass() {
+// export function gotoHomeOndockedPanel() {
+export async function gotoDefaultBlockOnDockedPanel() {
   if (!window.pluginDockpanel.panel.id) {
-    orca.notify("warn", "[dockPanel]当前没有停靠面板")
+    await createDockedPanel(defaultBlockId)
+    return
+  }
+
+  if (window.pluginDockpanel.isCollapsed) toggleDockedPanel()
+  
+  const target = await getBlockTarget(defaultBlockId)
+
+  orca.nav.goTo(target.view, target.viewArgs, window.pluginDockpanel.panel.id)
+
+}
+
+
+// 根据块id获取Block跳转目标，至少会返回一个今日日志
+async function getBlockTarget(blockId) {
+  // 没传直接返回今日日志
+  if (!blockId) {
+    return {view: 'journal', viewArgs: {date: new Date(new Date().toDateString())}, viewState: {}}
+  }
+
+  const block = orca.state.blocks[blockId] || await orca.invokeBackend("get-block", blockId)
+  if (!block) {
+    return {view: 'journal', viewArgs: {date: new Date(new Date().toDateString())}, viewState: {}}
+  }
+
+  const blockRepr = block.properties.find(p => p.name === '_repr')
+  const blockType = blockRepr.value.type
+  // 如果是日志块id，则转为日志视图的target
+  const target = {
+    view: blockType === 'journal'? 'journal' : 'block',
+    viewArgs: blockType === 'journal'? {date: blockRepr.value.date} : {blockId: blockId},
+    viewState: {}
+  }
+
+  return target
+}
+
+
+// 创建新的停靠面板，默认值为设置选项中的blockId
+async function createDockedPanel(blockId) {
+  if (window.pluginDockpanel.panel.id) {
+    console.notify("info", "[dockpanel] 只允许存在一个停靠面板，请先取消")
+    return
+  }
+
+  // 新面板target
+  let target = await getBlockTarget(blockId)
+
+  const firstPanelId = orca.state.panels.children[0].id
+  const panelId = orca.nav.addTo(firstPanelId, "left", target)
+  setDockPanel(panelId)
+}
+
+
+
+// 切出停靠面板，没有就新建一个
+export async function toggleDockedPanel() {
+  if (!window.pluginDockpanel.panel.id) {
+    await createDockedPanel(defaultBlockId)
     return
   }
 
   if (window.pluginDockpanel.isCollapsed) {
-    // 是折叠状态，则退出折叠，并恢复锁定状态
     removeCollapsed()
+
+    // 折叠面板时会自动lock，如果在折叠之前不是锁着的就释放锁定状态
     if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
 
+    // 自动聚焦
     if (enableAutoFocus) orca.nav.switchFocusTo(window.pluginDockpanel.panel.id)
 
   } else {
-    // 没有折叠，则进入折叠状态
     setCollapsed()
-    // 折叠后应当锁定面板。记录折叠前的锁定状态，用于在下次展开时取消锁定。
-    isLockedBeforeCollapsed = orca.nav.findViewPanel(window.pluginDockpanel.panel.id, orca.state.panels).locked === true
+
+    // 折叠后应当锁定面板。记录折叠前的锁定状态用于在下次展开时决定是否需要取消锁定。
+    isLockedBeforeCollapsed = orca.nav.findViewPanel(window.pluginDockpanel.panel.id, orca.state.panels).locked
     if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
   
     // 折叠自动脱离焦点
-    if (window.pluginDockpanel.panel.id != orca.state.activePanel) return
-    orca.nav.focusNext()
+    if (window.pluginDockpanel.panel.id === orca.state.activePanel) orca.nav.focusNext()
   }
 }
 
-
+// 设置折叠样式
 function setCollapsed() {
   if (rootRow) {
     rootRow.classList.add('collapsed-docked-panel')
     window.pluginDockpanel.isCollapsed = true
   }
 }
+
+// 移除折叠样式
 function removeCollapsed() {
   if (rootRow) {
     rootRow.classList.remove('collapsed-docked-panel')
@@ -175,9 +212,8 @@ function removeCollapsed() {
   }
 }
 
-/**
- * 添加根容器停靠样式类
- */
+
+// 设置停靠样式
 function setDockPanel(panelId) {
   if (rootRow) {
     rootRow.classList.add('has-docked-panel')
@@ -185,9 +221,7 @@ function setDockPanel(panelId) {
   }
 }
 
-/**
- * 移除根容器停靠样式类
- */
+// 移除停靠样式
 function removeDockPanel() {
   if (rootRow) {
     rootRow.classList.remove('has-docked-panel')
@@ -259,13 +293,6 @@ function setupSettingsWatcher() {
             enableAutoFocus = newAutoFocus
             console.log(`[dockpanel] 自动聚焦设置已更新: ${enableAutoFocus}`)
           }
-
-          // 处理主页模式设置变更
-          const newHomeMode = settings?.enableHomeMode
-          if (newHomeMode !== enableAutoFocus) {
-            enableAutoFocus = newHomeMode
-            console.log(`[dockpanel] 主页模式状态已更新: ${enableAutoFocus}`)
-          }
         }
       }
     )
@@ -288,37 +315,22 @@ function cleanupSettingsWatcher() {
 
 
 // 新功能，右键菜单直接打开停靠面板  2025年12月13日
-export function openInDockedpanel(blockId) {
+export async function openInDockedpanel(blockId) {
+
+  const target = await getBlockTarget(blockId)
+
+  if (!target) orca.notify("info", "[dockpanel] 目标块不存在")
+
   const dpid = window.pluginDockpanel.panel.id
-
-  // 将日志块id转为日志渲染视图
-  const p0 = orca.state.blocks[blockId].properties[0]
-  let isJournal = false
-  let date = null
-  if (p0.name === "_repr" && p0.value.type === 'journal') {
-    isJournal = true
-    date = p0.value.date
-  }
-
   if (dpid) {
     // 如果存在停靠面板，先确保展开，然后goTo
-    if (window.pluginDockpanel.isCollapsed) toggleCollapsedClass()
-    isJournal ? orca.nav.goTo("journal", { date }, dpid) : orca.nav.goTo("block", { blockId }, dpid)
+    if (window.pluginDockpanel.isCollapsed) toggleDockedPanel()
+    orca.nav.goTo(target.view, target.viewArgs, dpid)
     return
   }
 
   // 不存在就起一个
-  orca.nav.addTo(orca.state.activePanel, "left", 
-    isJournal ? {
-      view: "journal",
-      viewArgs: {date},
-      viewState: {}
-    } : {
-      view: "block",
-      viewArgs: {blockId},
-      viewState: {}
-    }
-  )
+  orca.nav.addTo(orca.state.activePanel, "left", target)
 
   dockCurrentPanel()
 }
