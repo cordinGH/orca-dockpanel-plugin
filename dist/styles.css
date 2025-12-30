@@ -76,6 +76,11 @@
     padding: 2px;
   }
   
+  /* 隐藏尺寸调节器和 判定拖放行为的 覆盖层 */
+  &>.resizer, &>.orca-panel-overlay{
+    display: none;
+  }
+  
   /* 悬停效果边框变色，缩小阴影*/
   &:hover {
     border-color: var(--orca-color-primary-5);
