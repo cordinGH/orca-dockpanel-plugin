@@ -1,7 +1,10 @@
-一个用于 [Orca Note](https://github.com/sethyuan/orca-note) 的分屏挂起插件，允许用户将当前面板"挂起"，类似于安卓手机的小窗。
+一个用于 [Orca Note](https://github.com/sethyuan/orca-note) 的分屏挂起插件，允许用户将面板"挂起"，类似于安卓手机的小窗。
 可以通过快捷键切出和收起。
 
 ## 版本主要变更
+- ...
+- v2.1.0 命令体验简化，新增前往默认块的命令。
+- v1.7.0 按钮逻辑变更：左键普通面板的按钮会挂起面板。左键停靠面板的按钮会隐藏面板，右键停靠面板按钮会取消停靠。
 - ...
 - [v1.4.2](https://github.com/cordinGH/orca-dockpanel-plugin/releases/tag/v1.4.2)
   - 新增可选设置项：折叠停靠面板时是否需要让焦点离开停靠面板
