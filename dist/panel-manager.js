@@ -112,18 +112,18 @@ export function undockPanel() {
 
 
 // 在停靠面板前往默认块
-// export async function gotoDefaultBlockOnDockedPanel() {
-//   if (!window.pluginDockpanel.panel.id) {
-//     await createDockedPanel(defaultBlockId)
-//     return
-//   }
+export async function gotoDefaultBlockOnDockedPanel() {
+  if (!window.pluginDockpanel.panel.id) {
+    await createDockedPanel(defaultBlockId)
+    return
+  }
 
-//   if (window.pluginDockpanel.isCollapsed) toggleDockedPanel()
+  if (window.pluginDockpanel.isCollapsed) toggleDockedPanel()
   
-//   const target = await getBlockTarget(defaultBlockId)
+  const target = await getBlockTarget(defaultBlockId)
 
-//   orca.nav.goTo(target.view, target.viewArgs, window.pluginDockpanel.panel.id)
-// }
+  orca.nav.goTo(target.view, target.viewArgs, window.pluginDockpanel.panel.id)
+}
 
 // 在当前面板前往默认块
 export async function gotoDefaultBlockOnCurrentPanel() {

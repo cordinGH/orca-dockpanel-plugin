@@ -69,8 +69,8 @@
   /* 预留2px的边距，太贴边不好看了 */
   /* 1.39.1版本修改了hideable定位类型，变成了相对定位，故回调padding2px */
   &>.orca-hideable:not(.orca-hideable-hidden){
-    opacity:1;
-    transition: opacity 0.2s ease-out 0.1s;
+    /* opacity:1;
+    transition: opacity 0.2s ease-out 0.1s; */
     width:auto;
     height:auto;
     padding: 2px;
@@ -80,7 +80,7 @@
   &>.resizer, &>.orca-panel-overlay{
     display: none;
   }
-  
+
   /* 悬停效果边框变色，缩小阴影*/
   &:hover {
     border-color: var(--orca-color-primary-5);
@@ -109,15 +109,16 @@
   transition: 
     all .2s ease-out,
     background-color 0s ease-out,
-    border-radius .6s ease-out .2s;
+    border-radius .5s ease-out .2s;
   
   
   /* 折叠时渐变背景提一点点质感 */
   background: var(--dockpanel-collapsed-bg) var(--background-color);
   
   &>.orca-hideable{
-    opacity: 0;
-    transition: opacity .15s ease-out;
+    /* opacity: 0; */
+    /* transition: opacity .15s ease-out; */
+    content-visibility: hidden;
     pointer-events: none;
   }
   

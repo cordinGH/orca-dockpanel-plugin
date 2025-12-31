@@ -35,11 +35,11 @@ function registerCommands() {
       description: "[dockpanel] 退出停靠"
     },
 
-    // gotoDefaultBlock: {
-    //   name: 'dockpanel.gotoDefaultBlockOnDockedPanel',
-    //   fn: panelManager.gotoDefaultBlockOnDockedPanel,
-    //   description: "[dockpanel] 在停靠面板前往默认块（若当前无停靠面板则新建）"
-    // }, 
+    gotoDefaultBlock: {
+      name: 'dockpanel.gotoDefaultBlockOnDockedPanel',
+      fn: panelManager.gotoDefaultBlockOnDockedPanel,
+      description: "[dockpanel] 在停靠面板前往默认块（若当前无停靠面板则新建）"
+    }, 
 
     gotoDefaultBlockOnCurrentPanel: {
       name: 'dockpanel.gotoDefaultBlockOnCurrentPanel',
