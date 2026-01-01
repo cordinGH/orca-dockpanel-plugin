@@ -82,7 +82,7 @@ export async function dockPanel(panelId) {
       orca.commands.invokeCommand("core.panel.toggleLock", oldDockedPanelId)
       isLockedBeforeCollapsed = newDockedPanel.locked === true
       if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", panelId)
-      orca.nav.focusNext()
+      if (orca.state.activePanel === panelId) orca.nav.focusNext()
     }
 
     // 【停靠变更】旧的移到新的右边，新的移到最后
@@ -99,10 +99,10 @@ export async function dockPanel(panelId) {
 
   // 【case2】唯一面板，则以默认块新建一个面板留在原地，然后停靠target面板
   if (!orca.nav.isThereMoreThanOneViewPanel()) {
+    // 先挂起再添加，避免抖动
+    setDockPanel(panelId)
     let target = await getBlockTarget(defaultBlockId)
-    const activePanelId = orca.state.activePanel
-    orca.nav.addTo(activePanelId, "left", target)
-    setDockPanel(activePanelId)
+    orca.nav.addTo(panelId, "left", target)
     return
   }
 
@@ -120,9 +120,12 @@ export async function dockPanel(panelId) {
   }
 
   // 【case4】正常情况，直接把面板移到最后位置
-  if (lastChildPanel.id !== panelId) orca.nav.move(panelId, lastChildPanel.id, "right")
+  if (lastChildPanel.id !== panelId) {
+    isSwappingDockedPanel = true
+    orca.nav.move(panelId, lastChildPanel.id, "right")
+    setTimeout(() => isSwappingDockedPanel = false, 0)
+  }
   setDockPanel(panelId)
-
 }
 
 

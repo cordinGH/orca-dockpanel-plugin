@@ -8,18 +8,19 @@
     text-transform: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    
-    content:"\f1f2";
+    content:"\f1f1";
     position: absolute;
     right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm));
     font-size: var(--orca-fontsize-lg);
-    opacity: .6;
+    opacity: 1;
+    color: rgb(from var(--orca-color-text-1) R G B / .5);
     padding: var(--orca-spacing-sm) var(--orca-spacing-2xs);
     top:.5rem;
     cursor:pointer;
     z-index: var(--orca-zindex-editor-sidepanel);
     z-index: 51;
-    border-radius: var(--orca-radius-md);
+    /* border-radius: var(--orca-radius-md); */
+    border-radius: 5px;
     background-color: var(--orca-color-bg-1);
     -webkit-user-select: none;
     user-select: none;
@@ -29,8 +30,15 @@
 }
 
 #main>.orca-panels-row.has-docked-panel> .orca-panel:before{
-    opacity: 1;
     color: var(--orca-color-primary-5);
+    text-shadow: 0 0 5px var(--orca-color-primary-5);
+    /* background-color: var(--orca-color-primary-5);
+    box-shadow:
+        .5px 0 0 0 var(--orca-color-primary-5),
+        -.5px 0 0 0 var(--orca-color-primary-5);
+    scale: .9;
+    border-radius:4px;
+    color: var(--orca-color-bg-1); */
 }
 
 #main>.orca-panels-row .orca-panel .orca-panel-drag-handle, .orca-panel-drag-handle~*{

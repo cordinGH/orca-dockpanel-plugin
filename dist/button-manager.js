@@ -76,9 +76,10 @@ function dockBtnHandler(e) {
 
     // 左键切出/隐藏，右键停靠当前面板，alt + 左键取消停靠。
     const eButton = e.button
+    const dpid = target.dataset.panelId
     switch (eButton) {
         case 0: panelManager.toggleDockedPanel(); break;
         case 1: panelManager.undockPanel(); break;
-        case 2: window.event?.altKey? panelManager.undockPanel() : panelManager.dockPanel(orca.state.activePanel); break;
+        case 2: window.event?.altKey? panelManager.undockPanel() : panelManager.dockPanel(dpid); break;
     } 
 }
