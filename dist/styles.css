@@ -8,28 +8,19 @@
 @media (prefers-color-scheme: dark) {
   :root{
     --my-color-bg-1: #fff;;
-    --dockpanel-collapsed-bg: linear-gradient(135deg, 
-      rgba(255, 255, 255, 0.08) 0%, 
-      rgba(255, 255, 255, 0.03) 100%);
-    --background-color: rgb(from var(--orca-color-bg-1) r g b / .995);
+    /* --background-color: rgb(from var(--orca-color-bg-1) r g b / .995); */
+    --background-color: rgb(from var(--orca-color-bg-1) r g b / .98);
   }
 }
 
 @media (prefers-color-scheme: light) {
   :root{
     --my-color-bg-1: #000;
-    --dockpanel-collapsed-bg: #f8f8f8;
-    --background-color: rgb(from var(--orca-color-bg-1) r g b / .975);
-    --dockpanel-collapsed-bg: linear-gradient(135deg, 
-  rgba(0, 0, 0, 0.03) 0%, 
-  rgba(0, 0, 0, 0.08) 100%);
+    /* --background-color: rgb(from var(--orca-color-bg-1) r g b / .975); */
+    --background-color: rgb(from var(--orca-color-bg-1) r g b / .95);
   }
 }
 
-/* 使得挂起面板继承圆角 */
-.has-docked-panel{
-  border-radius: inherit;
-}
 
 /* ———————————————————————————————————————————————————— */
 /* 修复因为orca-panel而导致官方的list背景不生效的问题 */
@@ -39,7 +30,6 @@
 }
 
 /* ———————————————————————————————————————————————————— */
-
 .has-docked-panel> .orca-panel:nth-last-child(1 of .orca-panel){
   position: absolute;
   min-width: 0 !important;
@@ -51,30 +41,23 @@
   /* 52rem刚好是子块orca-hidden的left right为2px时的，内容不被压缩的最小尺寸 */
   width: min(80%, 52rem);
   height: auto;
-  border-radius: inherit;
+  border-radius: var(--main-border-radius);
   border: var(--orca-border-general);
-  box-shadow: 1rem .375rem 2rem -1rem var(--box-shadow-color);
+  /* box-shadow: 1rem .375rem 2rem -1rem var(--box-shadow-color); */
+  box-shadow: 0 0 1rem -.25rem var(--box-shadow-color);
   overflow-x: hidden;
   overflow-y: hidden;
   z-index: var(--z-index);
   transform-origin: left top;
+  transform-origin: right top;
   transition: 
-    all .2s ease-out,
-    border-radius 0s ease-out 0s,
-    background-color 0s ease-out;
+    scale .25s ease-out,
+    border-color .25s ease-out,
+    box-shadow .25s ease-out,
+    opacity .25s ease-out;
   background: var(--background-color);
-  backdrop-filter: blur(7px);
-  
-  
-  /* 预留2px的边距，太贴边不好看了 */
-  /* 1.39.1版本修改了hideable定位类型，变成了相对定位，故回调padding2px */
-  &>.orca-hideable:not(.orca-hideable-hidden){
-    opacity:1;
-    transition: opacity 0.2s ease-out 0.1s;
-    width:auto;
-    height:auto;
-    padding: 2px;
-  }
+  backdrop-filter: blur(7px) saturate(180%);
+  padding: 2px;
   
   /* 隐藏尺寸调节器和 判定拖放行为的 覆盖层 */
   &>.resizer, &>.orca-panel-overlay{
@@ -84,47 +67,28 @@
   /* 悬停效果边框变色，缩小阴影*/
   &:hover {
     border-color: var(--orca-color-primary-5);
-    box-shadow: .75rem 0 .75rem -.75rem var(--box-shadow-color);
+    /* box-shadow: .75rem 0 .75rem -.75rem var(--box-shadow-color); */
   }
 }
+
 
 /* 移除左侧面板多余的拖拽条 */
 .has-docked-panel> .orca-panel:nth-last-child(2 of .orca-panel)>:is(.resizer, .orca-panel-overlay) {    
     display: none;
 }
 
+/* 移除不需要的面板分割线 */
+.has-docked-panel> .orca-panel:nth-last-child(2 of .orca-panel){
+  border-right: 0 !important
+}
+
 /* 折叠状态*/
 .has-docked-panel.collapsed-docked-panel> .orca-panel:nth-last-child(1 of .orca-panel){
-  /* translate: -.375rem 2.5rem; */
+  opacity: 0;
+  pointer-events: none;
   transform-origin:right top;
-  translate: calc(.3125rem - var(--docked-panel-base-right));
-  top:.5rem;
-  scale: 0.02 0.03;
-  /* opacity:.9; */
-  /* border-radius:999px; */
-  /* border-top-right-radius:999px; */
-  /* border-bottom-right-radius:999px; */
-  border-top-left-radius:39%;
-  border-bottom-left-radius:39%;
+  scale: 0.2 0.3;
   transition: 
-    all .2s ease-out,
-    background-color 0s ease-out,
-    border-radius .5s ease-out .2s;
-  
-  
-  /* 折叠时渐变背景提一点点质感 */
-  background: var(--dockpanel-collapsed-bg) var(--background-color);
-  
-  &>.orca-hideable{
-    opacity: 0;
-    transition: opacity .15s ease-out;
-    /* content-visibility: hidden; */
-    pointer-events: none;
-  }
-  
-  /* 折叠时的悬停效果 */
-  &:hover {
-    /* border-color: var(--orca-color-primary-5); */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  }
+    scale .25s ease-out,
+    opacity .1s ease-out;
 }

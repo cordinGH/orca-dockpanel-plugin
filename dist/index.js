@@ -25,6 +25,8 @@ async function recordMainElementPaddings() {
     const mainElement = document.getElementById('main')
     if (mainElement) {
       const styles = window.getComputedStyle(mainElement)
+      // 设置圆角变量（停靠面板所需）
+      mainElement.style.setProperty("--main-border-radius", styles.borderTopLeftRadius || "0px")
       mainElementPaddings = {
         top: parseFloat(styles.paddingTop) || 0,
         bottom: parseFloat(styles.paddingBottom) || 0,
@@ -32,7 +34,7 @@ async function recordMainElementPaddings() {
         right: parseFloat(styles.paddingRight) || 0
       }
       setDockedPanelPosition()
-      console.log(`[dockpanel] main 元素 padding 值已记录:`, mainElementPaddings)
+
     } else {
       console.warn(`[dockpanel] 未找到 id="main" 的元素`)
     }

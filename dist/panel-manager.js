@@ -3,26 +3,26 @@
  * 负责面板的停靠、恢复和状态管理
  */
 
-// 模块状态
+// 模块基本参数
 let pluginName = ""
-let isLockedBeforeCollapsed = false
-let dockedPanelCloseWatcher = null
-let dockedPanelIdUnSubscribe = null
-
 let defaultBlockId = ""
 let enableAutoFocus = true
 let settingsWatcherUnSubscribe = null
+let rootRow = null // orca.state.panels 对应的 DOM 元素
+let dockedPanelCloseWatcher = null
+let dockedPanelIdUnSubscribe = null
 
-// 根面板
-let rootRow = null
 
-// 准备全局对象，方便其他插件使用。Valtio.proxy创建响应式对象，方便其他插件订阅变化。
+// 停靠面板状态变量
+let isLockedBeforeCollapsed = false
 window.pluginDockpanel = {}
 window.pluginDockpanel.panel = window.Valtio.proxy({
   id: null
 })
-// 暴露折叠状态到全局，供其他插件查看
 window.pluginDockpanel.isCollapsed = false
+
+// 标记当前是否正在交换停靠面板, 防止observer误触发
+let isSwappingDockedPanel = false
 
 export async function start(name) {
 
@@ -64,23 +64,53 @@ export function cleanup() {
 // 停靠当前面板
 export async function dockPanel(panelId) {
 
-  // 如果当前已存在停靠面板，则取消
-  if (window.pluginDockpanel.panel.id) undockPanel()
+  const oldDockedPanelId = window.pluginDockpanel.panel.id
 
-  // openInLastPanel API在一些全屏视图下有问题，改用addTo API
-
-  // 唯一块直接新建
-  if (!orca.nav.isThereMoreThanOneViewPanel()) {
-    await createDockedPanel(defaultBlockId)
+  if (panelId === oldDockedPanelId) {
+    orca.notify("info", "[dockpanel] 该面板已是停靠面板")
     return
   }
 
-  // const currentPanelId = orca.state.activePanel
+  // 【case1】已存在停靠面板，则交换位置
+  if (oldDockedPanelId) {
+    isSwappingDockedPanel = true
+    const newDockedPanel = orca.nav.findViewPanel(panelId, orca.state.panels)
+
+    // 【锁定变更】 如果old是折叠状态，则还原锁定。并将锁定标识更新为new，并脱焦（dockpanel是点击触发）
+    const isCollapsed = window.pluginDockpanel.isCollapsed
+    if (isCollapsed && !isLockedBeforeCollapsed) {
+      orca.commands.invokeCommand("core.panel.toggleLock", oldDockedPanelId)
+      isLockedBeforeCollapsed = newDockedPanel.locked === true
+      if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", panelId)
+      orca.nav.focusNext()
+    }
+
+    // 【停靠变更】旧的移到新的右边，新的移到最后
+    orca.nav.move(oldDockedPanelId, panelId, "right")
+    const rootPanelChildren = orca.state.panels.children
+    const lastChildPanelId = rootPanelChildren[rootPanelChildren.length - 1].id
+    orca.nav.move(panelId, lastChildPanelId, "right")
+    window.pluginDockpanel.panel.id = panelId
+    
+    // 确保observer不触发
+    setTimeout(() => isSwappingDockedPanel = false, 0)
+    return
+  }
+
+  // 【case2】唯一面板，则以默认块新建一个面板留在原地，然后停靠target面板
+  if (!orca.nav.isThereMoreThanOneViewPanel()) {
+    let target = await getBlockTarget(defaultBlockId)
+    const activePanelId = orca.state.activePanel
+    orca.nav.addTo(activePanelId, "left", target)
+    setDockPanel(activePanelId)
+    return
+  }
+
+
   const rootPanelChildPanelNumber = orca.state.panels.children.length
   const rootPanelChildren = orca.state.panels.children
   const lastChildPanel = rootPanelChildren[rootPanelChildPanelNumber - 1]
-
-  // 当根row的只有一个colChild且col内只有2个普通面板，禁止停靠，因为会破坏结构
+  // 【case3】当根row的只有一个colChild且col内只有2个普通面板，禁止停靠，因为会破坏结构
   if (rootPanelChildPanelNumber === 1 && lastChildPanel.direction === '"column') {
     const children = lastChildPanel.children
     if (children.length === 2 && children.every(child => child.view)) {
@@ -89,24 +119,28 @@ export async function dockPanel(panelId) {
     }
   }
 
-  // 如果当前面板不是最后一个面板，则移动到最后位置
+  // 【case4】正常情况，直接把面板移到最后位置
   if (lastChildPanel.id !== panelId) orca.nav.move(panelId, lastChildPanel.id, "right")
+  setDockPanel(panelId)
 
-  
-  // 奇奇怪怪的问题，如果不丢到最后执行，调试发现样式设置成功后，又被刷掉了
-  setTimeout(()=>setDockPanel(panelId), 0)
-  
 }
 
-/**
- * 取消停靠面板
- */
+
+// 清理停靠
 export function undockPanel() {
+
+  const dockedPanelId = window.pluginDockpanel.panel.id
+  if (!dockedPanelId) {
+    orca.notify("info", "[dockpanel] 当前没有面板被挂起")
+    return
+  }
+  
   // 比对取消时的锁定状态，如果和原状态不一致，则切换锁定状态变成一致。
-  const isLockedNow = orca.nav.findViewPanel(window.pluginDockpanel.panel.id, orca.state.panels).locked === true
+  const isLockedNow = orca.nav.findViewPanel(dockedPanelId, orca.state.panels).locked === true
   if (isLockedNow !== isLockedBeforeCollapsed) {
     orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
   }
+  
   removeDockPanel()
 }
 
@@ -173,13 +207,16 @@ async function createDockedPanel(blockId) {
 }
 
 
-// 切出停靠面板，没有就新建一个
+// 切出停靠面板
 export async function toggleDockedPanel() {
+
+  // 【case1】 当前无停靠面板则新建一个
   if (!window.pluginDockpanel.panel.id) {
     await createDockedPanel(defaultBlockId)
     return
   }
 
+  // 【case2】 有停靠面板则切换折叠状态
   if (window.pluginDockpanel.isCollapsed) {
     removeCollapsed()
 
@@ -200,6 +237,7 @@ export async function toggleDockedPanel() {
     if (window.pluginDockpanel.panel.id === orca.state.activePanel) orca.nav.focusNext()
   }
 }
+
 
 // 设置折叠样式
 function setCollapsed() {
@@ -230,8 +268,10 @@ function setDockPanel(panelId) {
 function removeDockPanel() {
   if (rootRow) {
     rootRow.classList.remove('has-docked-panel')
-    removeCollapsed()
     window.pluginDockpanel.panel.id = null
+    removeCollapsed()  
+    isLockedBeforeCollapsed = false
+    isSwappingDockedPanel = false
   }
 }
 
@@ -245,18 +285,22 @@ function setupDockedPanelCloseWatcher() {
   }
   // 只观察根级子面板的移除
   dockedPanelCloseWatcher = new MutationObserver((records) => {
+
+    if (isSwappingDockedPanel) return; // 正在交换停靠面板时不处理
+
     const currentDockedId = window.pluginDockpanel.panel.id;
+    if (!currentDockedId) return; // 当前无停靠面板时不处理
+
     for (const record of records) {
       for (const node of record.removedNodes) {
         if (node.nodeType !== 1) continue; 
         const removedPanelId = node.getAttribute('data-panel-id');
         if (!removedPanelId) continue;
-        // 停靠面板被关闭，或者只剩下停靠面板，均移除class，并结束处理
-        const isDockedPanelRemoved = (removedPanelId === currentDockedId);
-        const isDockedPanelOrphaned = (orca.state.activePanel === currentDockedId && !orca.nav.isThereMoreThanOneViewPanel());
-        if (isDockedPanelRemoved || isDockedPanelOrphaned) {
-          removeDockPanel();
-          return; 
+        // 停靠面板被关闭，或者只剩下停靠面板
+        if (removedPanelId === currentDockedId) {
+          removeDockPanel()
+        } else if (!orca.nav.isThereMoreThanOneViewPanel()) {
+          undockPanel()
         }
       }
     }
@@ -301,7 +345,7 @@ function setupSettingsWatcher() {
         }
       }
     )
-    console.log(`[dockpanel] 设置变更监听器已启动`)
+    console.log(`[dockpanel] ✅ 开始监听dockpanel设置变更`)
   } else {
     console.warn(`[dockpanel] valtio 不可用，设置变更监听器无法启动`)
   }
