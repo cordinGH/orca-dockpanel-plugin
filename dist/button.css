@@ -8,7 +8,8 @@
     text-transform: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    content:"\f1f1";
+    /* content:"\f1f1"; */
+    content:"\efe4";
     position: absolute;
     right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm));
     font-size: var(--orca-fontsize-lg);
@@ -29,9 +30,17 @@
     right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm) + 2px);
 }
 
+
+.dockpanel-has-text-shadow #main>.orca-panels-row.has-docked-panel> .orca-panel:before{
+    text-shadow: 0 0 15px var(--orca-color-primary-5);
+}
+
 #main>.orca-panels-row.has-docked-panel> .orca-panel:before{
+    content: "\fec2";
     color: var(--orca-color-primary-5);
-    text-shadow: 0 0 5px var(--orca-color-primary-5);
+    /* 过时方案2 */
+    /* text-shadow: 0 0 5px var(--orca-color-primary-5); */
+    /* 过时方案1 */
     /* background-color: var(--orca-color-primary-5);
     box-shadow:
         .5px 0 0 0 var(--orca-color-primary-5),

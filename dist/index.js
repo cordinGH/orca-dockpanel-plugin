@@ -162,8 +162,17 @@ async function registerSettings() {
       description: "展开停靠面板时自动聚焦到停靠面板（建议开启）",
       type: "boolean",
       defaultValue: true,
+    },
+
+    enableTextShadow: {
+      label: "启动按钮阴影",
+      description: "存在停靠面板时，按钮会具有阴影效果以提升辨识度。",
+      type: "boolean",
+      defaultValue: true,
     }
   }
 
   await orca.plugins.setSettingsSchema(pluginName, settingsSchema)
+
+  if (orca.state.plugins[pluginName]?.settings.enableTextShadow) document.body.classList.add("dockpanel-has-text-shadow")
 }

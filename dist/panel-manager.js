@@ -345,6 +345,9 @@ function setupSettingsWatcher() {
             enableAutoFocus = newAutoFocus
             console.log(`[dockpanel] 自动聚焦设置已更新: ${enableAutoFocus}`)
           }
+
+          // 处理停靠时的按钮发光效果
+          settings.enableTextShadow ? document.body.classList.add("dockpanel-has-text-shadow"):document.body.classList.remove("dockpanel-has-text-shadow")
         }
       }
     )
