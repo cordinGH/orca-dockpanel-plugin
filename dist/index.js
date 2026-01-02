@@ -169,6 +169,12 @@ async function registerSettings() {
       description: "存在停靠面板时，按钮会具有阴影效果以提升辨识度。",
       type: "boolean",
       defaultValue: true,
+    },
+    enableAutoCollapse: {
+      label: "启动自动隐藏",
+      description: "当停靠面板不再是active面板时（如焦点给到了其他面板），自动隐藏停靠面板。",
+      type: "boolean",
+      defaultValue: true,
     }
   }
 

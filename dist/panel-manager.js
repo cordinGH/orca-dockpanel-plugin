@@ -7,10 +7,13 @@
 let pluginName = ""
 let defaultBlockId = ""
 let enableAutoFocus = true
+let enableAutoCollapse = false
 let settingsWatcherUnSubscribe = null
 let rootRow = null // orca.state.panels 对应的 DOM 元素
 let dockedPanelCloseWatcher = null
 let dockedPanelIdUnSubscribe = null
+
+let disposeAutoCollapse = null
 
 
 // 停靠面板状态变量
@@ -32,18 +35,26 @@ export async function start(name) {
   const settings = orca.state.plugins[pluginName].settings
   defaultBlockId = settings.pluginDockPanelDefaultBlockId
   enableAutoFocus = settings.enableAutoFocus
+  enableAutoCollapse = settings.enableAutoCollapse
 
 
   setupSettingsWatcher()
 
   // 监听停靠面板关闭事件
   setupDockedPanelCloseWatcher()
+
+  if (enableAutoCollapse) disposeAutoCollapse = initAutoCollapseMonitor()
 }
 
 /**
  * 清理模块
  */
 export function cleanup() {
+
+  if (disposeAutoCollapse) {
+    disposeAutoCollapse()
+    disposeAutoCollapse = null
+  }
   // 清理停靠面板关闭监听器
   cleanupDockedPanelCloseWatcher()
   
@@ -56,6 +67,8 @@ export function cleanup() {
 
   // 如果有停靠的面板，先取消停靠
   if (window.pluginDockpanel.panel.id) undockPanel()
+
+  
 
   rootRow = null
 }
@@ -283,9 +296,7 @@ function removeDockPanel() {
  * 检测停靠面板是否被关闭。停靠面板固定为根面板下的第一个子面板，观察根面板直接子元素的移除行为。
  */
 function setupDockedPanelCloseWatcher() {
-  if (dockedPanelCloseWatcher) {
-    return
-  }
+
   // 只观察根级子面板的移除
   dockedPanelCloseWatcher = new MutationObserver((records) => {
 
@@ -348,6 +359,17 @@ function setupSettingsWatcher() {
 
           // 处理停靠时的按钮发光效果
           settings.enableTextShadow ? document.body.classList.add("dockpanel-has-text-shadow"):document.body.classList.remove("dockpanel-has-text-shadow")
+
+          // 自动隐藏
+          const newAutoCollapse = settings.enableAutoCollapse
+          if (newAutoCollapse) {
+            disposeAutoCollapse = initAutoCollapseMonitor()
+          } else {
+            if (disposeAutoCollapse) {
+              disposeAutoCollapse()
+              disposeAutoCollapse = null
+            }
+          }
         }
       }
     )
@@ -386,4 +408,90 @@ export async function openInDockedpanel(blockId) {
 
   // 不存在就新起一个
   createDockedPanel(defaultBlockId)
+}
+
+
+
+// ************************************  issue 5 自动折叠****************************************************
+function initAutoCollapseMonitor() {
+  
+  // 保存根面板的直接child
+  let observerMap = new Map()
+  
+  const evaluateAutoCollapse = (mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') return
+      // case1 已经折叠不做处理
+      if (window.pluginDockpanel.isCollapsed) return
+
+      const target = mutation.target;
+      const isDockedPanel = target.dataset.panelId === window.pluginDockpanel.panel.id
+      const dockedPanelNotActive = isDockedPanel && !target.classList.contains('active')
+
+      // case2 没折叠但是活跃中，不处理
+      if (!dockedPanelNotActive) return
+
+      const {body} = document
+      const isPreview = body.classList.contains("orca-popup-pointer-logic")
+      const isSearchModal = body.querySelectorAll(':scope > .orca-modal-overlay > .orca-search-modal').length !== 0
+
+      // case3 没折叠，也不活跃，但是当前正在预览视图/全局搜索视图，不处理
+      if (isPreview || isSearchModal) return
+
+      setCollapsed()
+      // 折叠后应当锁定面板。记录折叠前的锁定状态用于在下次展开时决定是否需要取消锁定。
+      isLockedBeforeCollapsed = orca.nav.findViewPanel(window.pluginDockpanel.panel.id, orca.state.panels).locked
+      if (!isLockedBeforeCollapsed) orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
+    }
+  };
+
+  const handleDirectChild = (mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type !== 'childList') return
+
+      // A. 为新的直接子面板绑定observer
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType !== 1) return
+        observePanel(node)
+      });
+
+      // B. 为移除的直接子面板断连Observer并清理相关对象
+      mutation.removedNodes.forEach(node => {
+        if (node.nodeType !== 1) return
+        const observer = observerMap.get(node);
+
+        if (!observer) return
+        observer.disconnect();
+        observerMap.delete(node);
+      });
+    }
+  }
+    
+  const observePanel = (element) => {
+    if (observerMap.has(element)) return
+
+    const observer = new MutationObserver(evaluateAutoCollapse);
+    observer.observe(element, { attributes: true, attributeFilter: ['class'], subtree: false})
+    
+    observerMap.set(element, observer);
+  }
+  
+  let rootRowObserver = new MutationObserver(handleDirectChild);
+
+  rootRowObserver.observe(rootRow, { childList: true, subtree: false })
+
+  // 为初始面板建立观察
+  Array.from(rootRow.children).forEach(node => {if (node.nodeType === 1) observePanel(node)});
+
+  // 销毁函数
+  const dispose = () => {
+    for (const observer of observerMap.values()) {
+      observer.disconnect()
+    }
+    observerMap.clear()
+    observerMap = null
+    rootRowObserver.disconnect()
+    rootRowObserver = null
+  }
+  return dispose
 }
