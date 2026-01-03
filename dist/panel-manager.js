@@ -151,8 +151,13 @@ export function undockPanel() {
     return
   }
   
+  const panel = orca.nav.findViewPanel(dockedPanelId, orca.state.panels)
+  if (!panel) {
+    removeDockPanel()
+    return
+  }
   // 比对取消时的锁定状态，如果和原状态不一致，则切换锁定状态变成一致。
-  const isLockedNow = orca.nav.findViewPanel(dockedPanelId, orca.state.panels).locked === true
+  const isLockedNow = panel.locked === true
   if (isLockedNow !== isLockedBeforeCollapsed) {
     orca.commands.invokeCommand("core.panel.toggleLock", window.pluginDockpanel.panel.id)
   }
