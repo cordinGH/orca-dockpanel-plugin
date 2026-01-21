@@ -24,8 +24,8 @@ window.pluginDockpanel.panel = window.Valtio.proxy({
 })
 window.pluginDockpanel.isCollapsed = false
 
-// 标记当前是否正在交换停靠面板, 防止observer误触发
-let isSwappingDockedPanel = false
+// 标记当前是否正在交换停靠面板, 防止关闭面板/active脱离的observer误触发
+let isDocking = false
 
 export async function start(name) {
 
@@ -86,7 +86,7 @@ export async function dockPanel(panelId) {
 
   // 【case1】已存在停靠面板，则交换位置
   if (oldDockedPanelId) {
-    isSwappingDockedPanel = true
+    isDocking = true
     const newDockedPanel = orca.nav.findViewPanel(panelId, orca.state.panels)
 
     // 【锁定变更】 如果old是折叠状态，则还原锁定。并将锁定标识更新为new，并脱焦（dockpanel是点击触发）
@@ -105,17 +105,19 @@ export async function dockPanel(panelId) {
     orca.nav.move(panelId, lastChildPanelId, "right")
     window.pluginDockpanel.panel.id = panelId
     
-    // 确保observer不触发
-    setTimeout(() => isSwappingDockedPanel = false, 0)
+    // 确保关闭面板的observer不触发
+    setTimeout(() => isDocking = false, 0)
     return
   }
 
   // 【case2】唯一面板，则以默认块新建一个面板留在原地，然后停靠target面板
   if (!orca.nav.isThereMoreThanOneViewPanel()) {
+    isDocking = true
     // 先挂起再添加，避免抖动
     setDockPanel(panelId)
     let target = await getBlockTarget(defaultBlockId)
     orca.nav.addTo(panelId, "left", target)
+    setTimeout(() => isDocking = false, 0)
     return
   }
 
@@ -134,9 +136,9 @@ export async function dockPanel(panelId) {
 
   // 【case4】正常情况，直接把面板移到最后位置
   if (lastChildPanel.id !== panelId) {
-    isSwappingDockedPanel = true
+    isDocking = true
     orca.nav.move(panelId, lastChildPanel.id, "right")
-    setTimeout(() => isSwappingDockedPanel = false, 0)
+    setTimeout(() => isDocking = false, 0)
   }
   setDockPanel(panelId)
 }
@@ -292,7 +294,7 @@ function removeDockPanel() {
     window.pluginDockpanel.panel.id = null
     removeCollapsed()  
     isLockedBeforeCollapsed = false
-    isSwappingDockedPanel = false
+    isDocking = false
   }
 }
 
@@ -305,7 +307,7 @@ function setupDockedPanelCloseWatcher() {
   // 只观察根级子面板的移除
   dockedPanelCloseWatcher = new MutationObserver((records) => {
 
-    if (isSwappingDockedPanel) return; // 正在交换停靠面板时不处理
+    if (isDocking) return; // 正在停靠面板时不处理
 
     const currentDockedId = window.pluginDockpanel.panel.id;
     if (!currentDockedId) return; // 当前无停靠面板时不处理
@@ -424,6 +426,7 @@ function initAutoCollapseMonitor() {
   let observerMap = new Map()
   
   const evaluateAutoCollapse = (mutations) => {
+    if (isDocking) return; // 正在停靠面板时不处理
     for (const mutation of mutations) {
       if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') return
       // case1 已经折叠不做处理

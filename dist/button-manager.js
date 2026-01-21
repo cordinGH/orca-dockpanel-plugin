@@ -74,7 +74,7 @@ function dockBtnHandler(e) {
     e.preventDefault() // 消除圆圈
     e.stopPropagation()
 
-    // 左键切出/隐藏，右键停靠当前面板，alt + 左键取消停靠。
+    // 左键切出/隐藏，右键停靠当前面板，alt + 右键取消停靠（或者中键）。
     const eButton = e.button
     const dpid = target.dataset.panelId
     switch (eButton) {
