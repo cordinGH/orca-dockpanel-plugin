@@ -81,7 +81,8 @@
     }
     
     &.orca-video-container{
-        top:calc(-2.25rem - var(--docked-panel-base-top));
+        /* 1.68.1版本虎鲸，改用了anchor定位。以下top赞无需生效 */
+        /* top:calc(-2.25rem - var(--docked-panel-base-top)); */
         overflow: hidden;
         >.orca-video-toolbar{
             margin-right:3rem;
