@@ -11,11 +11,15 @@ export function start(pm) {
     // 设置右上角dockpanel按钮的左右键监听
     rootPanel = document.querySelector("#main>.orca-panels-row")
     setBtnInfo()
-    rootPanel.addEventListener('pointerdown', dockBtnHandler)
+    // rootPanel.addEventListener('pointerdown', dockBtnHandler)
+    rootPanel.addEventListener('click', dockBtnHandler)
+    rootPanel.addEventListener('auxclick', dockBtnHandler)
 }
 
 export function cleanup() {
-    rootPanel.removeEventListener('pointerdown', dockBtnHandler)
+    // rootPanel.removeEventListener('pointerdown', dockBtnHandler)
+    rootPanel.removeEventListener('click', dockBtnHandler)
+    rootPanel.removeEventListener('auxclick', dockBtnHandler)
     btnInfo = null
     rootPanel = null
     panelManager = null
