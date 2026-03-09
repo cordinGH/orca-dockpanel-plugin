@@ -63,25 +63,3 @@ orca-dockpanel-plugin/
 >   <img width="321" height="134" alt="image" src="https://github.com/user-attachments/assets/50cf1e64-f628-42cb-8e77-82ae4083999b" />
 
 
----
-
-### 命令和快捷键
-
-命令面板搜索dock
-- 1️⃣开启/取消当前面板的停靠(dock)
-- 2️⃣收起/展开停靠的面板(dock)
-
-推荐给2️⃣设置快捷键，用来一键切出停靠面板。我设置的是alt q
-
-> [!TIP] 
-> 关于1️⃣命令的逻辑：
-> - 如果不存在停靠面板，则会将当前面板停靠
-> - 如果存在停靠面板
->     - 如果当前就在停靠面板，则会取消停靠恢复原样。
->     - 如果当前不在停靠面板，则当前面板会顶替为新停靠。
-
-### 简单演示（v1.1.0）
-
-https://github.com/user-attachments/assets/c40e1a86-d437-47aa-989c-bb86d83e18f0
-
-
