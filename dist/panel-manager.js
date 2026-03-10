@@ -413,8 +413,8 @@ export async function openInDockedpanel(blockId) {
     return
   }
 
-  // 不存在就新起一个
-  createDockedPanel(defaultBlockId)
+  // 不存在则新起一个
+  createDockedPanel(blockId)
 }
 
 
