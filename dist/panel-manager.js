@@ -35,13 +35,13 @@ export async function start(name) {
   dockedPanelIdUnSubscribe = window.Valtio.subscribe(window.pluginDockpanel.panel, ()=>{
     setTimeout(()=>{
       if (lastDockPanelId) {
-        const orcaPanelDragHandle = document.querySelector(`.orca-panel[data-panel-id=${lastDockPanelId}] .orca-panel-drag-handle`);
+        const orcaPanelDragHandle = document.querySelector(`.orca-panel[data-panel-id="${lastDockPanelId}"] .orca-panel-drag-handle`);
         orcaPanelDragHandle?.setAttribute('draggable', 'true');
         lastDockPanelId = null;
       }
       const newDockedPanelId = window.pluginDockpanel.panel.id
       if (newDockedPanelId) {
-        const orcaPanelDragHandle = document.querySelector(`.orca-panel[data-panel-id=${newDockedPanelId}] .orca-panel-drag-handle`);
+        const orcaPanelDragHandle = document.querySelector(`.orca-panel[data-panel-id="${newDockedPanelId}"] .orca-panel-drag-handle`);
         orcaPanelDragHandle?.setAttribute('draggable', 'false');
         lastDockPanelId = newDockedPanelId
       }
