@@ -115,8 +115,7 @@ export async function load(name) {
   pluginName = name
 
   // 注入CSS
-  orca.themes.injectCSSResource(`${pluginName}/dist/styles.css`, pluginName)
-  orca.themes.injectCSSResource(`${pluginName}/dist/button.css`, pluginName)
+  orca.themes.injectCSSResource(`${pluginName}/dist/dockpanel-styles.css`, pluginName)
 
   // 注册设置选项
   await registerSettings()
