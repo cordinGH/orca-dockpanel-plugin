@@ -9,7 +9,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* content:"\f1f1"; */
-    content:"\efe4";
+    content:"\efe4"; /* picture-in-picture-top */
     position: absolute;
     right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm));
     font-size: var(--orca-fontsize-lg);

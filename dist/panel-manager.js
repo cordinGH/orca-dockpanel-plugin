@@ -18,16 +18,35 @@ let disposeAutoCollapse = null
 
 // 停靠面板状态变量
 let isLockedBeforeCollapsed = false
-window.pluginDockpanel = {}
-window.pluginDockpanel.panel = window.Valtio.proxy({
-  id: null
-})
-window.pluginDockpanel.isCollapsed = false
+window.pluginDockpanel = null
+let lastDockPanelId = ''
 
 // 标记当前是否正在交换停靠面板, 防止关闭面板/active脱离的observer误触发
 let isDocking = false
 
 export async function start(name) {
+  window.pluginDockpanel = {}
+  window.pluginDockpanel.isCollapsed = false
+  window.pluginDockpanel.panel = window.Valtio.proxy({
+    id: null
+  })
+
+  // 禁止停靠面板的拖拽
+  dockedPanelIdUnSubscribe = window.Valtio.subscribe(window.pluginDockpanel.panel, ()=>{
+    setTimeout(()=>{
+      if (lastDockPanelId) {
+        const orcaPanelDragHandle = document.querySelector(`.orca-panel[data-panel-id=${lastDockPanelId}] .orca-panel-drag-handle`);
+        orcaPanelDragHandle?.setAttribute('draggable', 'true');
+        lastDockPanelId = null;
+      }
+      const newDockedPanelId = window.pluginDockpanel.panel.id
+      if (newDockedPanelId) {
+        const orcaPanelDragHandle = document.querySelector(`.orca-panel[data-panel-id=${newDockedPanelId}] .orca-panel-drag-handle`);
+        orcaPanelDragHandle?.setAttribute('draggable', 'false');
+        lastDockPanelId = newDockedPanelId
+      }
+    }, 150) // 确保DOM绘制完毕。
+  })
 
   pluginName = name
   rootRow =  document.querySelector("#main>.orca-panels-row")
