@@ -361,8 +361,8 @@ function cleanupDockedPanelCloseWatcher() {
 function setupSettingsWatcher() {
     if (settingsWatcherUnSubscribe) return
 
-    // 使用 valtio 订阅设置变更
-    if (window.Valtio && window.Valtio.subscribe) {
+    // valtio 订阅设置变更
+    if (window.Valtio?.subscribe) {
         settingsWatcherUnSubscribe = window.Valtio.subscribe(
             orca.state.plugins[pluginName],
             () => {

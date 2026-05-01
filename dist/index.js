@@ -139,9 +139,7 @@ export async function unload() {
   commandHandler.cleanup()
   panelManager.cleanup()
   buttonManager.cleanup()
-
-  // 清空设置选项
-  await orca.plugins.setSettingsSchema(pluginName, {})
+  
 }
 
 /**
