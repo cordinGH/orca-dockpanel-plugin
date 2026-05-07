@@ -148,7 +148,7 @@
     color: var(--orca-color-bg-1); */
 }
 
-#main>.orca-panels-row .orca-panel .orca-panel-drag-handle, .orca-panel-drag-handle~*{
+#main>.orca-panels-row .orca-panel .orca-panel-drag-handle, .orca-panel-drag-handle+.orca-block-editor-sidetools{
     translate:0 2.25rem;
 }
 
