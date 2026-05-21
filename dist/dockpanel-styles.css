@@ -4,6 +4,7 @@
   /* 当后方分屏时，尺寸拖拽条的z-index是60 */
   --z-index: 61;
   /* --z-index: calc(var(--orca-zindex-editor-sidepanel) + 1); */
+    --docked-panel-spacing: 2px;
 }
 @media (prefers-color-scheme: dark) {
   :root{
@@ -57,7 +58,7 @@
     opacity .25s ease-out;
   background: var(--background-color);
   backdrop-filter: blur(7px) saturate(180%);
-  padding: 2px;
+  padding: var(--docked-panel-spacing);
   
   /* 隐藏尺寸调节器和 判定拖放行为的 覆盖层 */
   &>.resizer, &>.orca-panel-overlay{
@@ -96,7 +97,7 @@
 
 /* ——————————————————————————————————————————————右上角button—————————————————————————————————————————————————————————————— */
 
-#main>.orca-panels-row .orca-panel:before{
+.orca-panel:before{
     font-family: tabler-icons!important;
     speak: none;
     font-style: normal;
@@ -125,16 +126,18 @@
     -webkit-user-select: none;
     user-select: none;
 }
-#main>.has-docked-panel .orca-panel:nth-last-child(1 of .orca-panel):before{
-    right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm) + 2px);
+
+.has-docked-panel .orca-panel:nth-last-child(1 of .orca-panel):before{
+    right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm) + var(--docked-panel-spacing));
+    top: calc(.5rem + var(--docked-panel-spacing))
 }
 
 
-.dockpanel-has-text-shadow #main>.orca-panels-row.has-docked-panel> .orca-panel:before{
+.dockpanel-has-text-shadow .has-docked-panel .orca-panel:before{
     text-shadow: 0 0 15px var(--orca-color-primary-5);
 }
 
-#main>.orca-panels-row.has-docked-panel> .orca-panel:before{
+.has-docked-panel .orca-panel:before{
     content: "\fec2";
     color: var(--orca-color-primary-5);
     /* 过时方案2 */
@@ -149,61 +152,63 @@
     color: var(--orca-color-bg-1); */
 }
 
-#main>.orca-panels-row .orca-panel .orca-panel-drag-handle, .orca-panel-drag-handle+.orca-block-editor-sidetools{
+.orca-panel .orca-panel-drag-handle, .orca-panel-drag-handle+.orca-block-editor-sidetools{
     translate:0 2.25rem;
 }
 
-/* —————————————————————————————————————————————————————————————— */
-/* 适配全屏的视频和pdf里按钮颜色 */
-#main>.orca-panels-row .orca-panel:has(.orca-maximized:is(.orca-video-container)):before{
-    background-color:transparent;
-    color:var(--orca-color-white);
-}
-/* 适配白板块、pdf块、视频块在全屏时，右上角按钮布局 */
-#main>.orca-panels-row .orca-panel .orca-maximized{
-    &:is(.orca-whiteboard, .orca-repr-pdf-container, .orca-video-container){
-        width:auto;
-        overflow: hidden;
-        /* bottom: calc(2.25rem - var(--docked-panel-base-bottom)); */
-        border-radius:6px;
+/* ———————————————————————————— 优化dockpanel按钮在全屏块时的布局和谐度（与工具栏） —————————————————————————————————— */
+.orca-panel .orca-maximized{
+
+    /* ———————————————————————————— video & pdf —————————————————————————————— */
+    &.orca-repr-pdf-container .orca-pdf-toolbar,
+    &.orca-video-container .orca-video-toolbar {
+      /* toolbar容器的padding模拟dockpanel按钮top偏移 */
+      padding-top: .5rem;
+      /* 为dockpanel按钮预留空间 */
+      padding-right: 3rem;
+      
+      /* 子组件和dockpanel按钮的padding一致。 */
+      & .orca-button {
+          line-height: 1;
+          --offset: calc((var(--orca-fontsize-lg) * 1 - var(--orca-fontsize-sm) * 1) * .5);
+          padding: calc(var(--orca-spacing-sm) + var(--offset)) var(--orca-spacing-sm);
+      }
     }
 
-    &.orca-repr-pdf-container{
-        top:calc(-2.25rem - var(--docked-panel-base-top));
-        overflow: hidden;
-        >.orca-pdf-toolbar{
-            margin-right:3rem;
-            margin-top: .375rem;
-            margin-bottom: .375rem;
-            margin-left:.3rem;
-        }
+    /* ———————————————————————————— aichat —————————————————————————————— */
+    /* 约束100%宽度时的留白，以便给dockpanel留有摆放空间 */
+    &.orca-aichat-container>div {
+        width: calc(100% - 3rem) !important;
     }
     
-    &.orca-video-container{
-        /* 1.68.1版本虎鲸，改用了anchor定位。以下top赞无需生效 */
-        /* top:calc(-2.25rem - var(--docked-panel-base-top)); */
-        overflow: hidden;
-        >.orca-video-toolbar{
-            margin-right:3rem;
-            margin-top: .375rem;
+    /* header栏和dockpanel按钮保持对齐 */
+    & .orca-aichat-maximized-header{
+        /* header容器padding模拟dockpanel按钮top偏移 */
+        padding-top: .5rem;
+
+        /* 子组件和dockpanel按钮的padding一致，补齐差值offset。 */
+        & .orca-aichat-maximized-title,
+        & .orca-aichat-maximized-actions>.orca-button{
+          line-height: 1;
+          --offset: calc((var(--orca-fontsize-lg) * 1 - var(--orca-fontsize-sm) * 1) * .5);
+          padding: calc(var(--orca-spacing-sm) + var(--offset)) var(--orca-spacing-sm);
         }
     }
-    
-    &.orca-whiteboard{
-        .excalidraw.excalidraw-container:not(.excalidraw--mobile) :is(.orca-whiteboard-insert-btn, .sidebar-trigger__label-element){
-            translate:-2.5rem 0;
-        }
-        .orca-whiteboard-editing{
-            right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm));
-            top: 2.5rem;
-            border:none;
-            box-shadow:var(--orca-shadow-list);
-            border-radius:var(--orca-radius-md);
-            padding:0;
-            &>.orca-button{
-                padding: var(--orca-spacing-sm) var(--orca-spacing-2xs);
-                font-size: var(--orca-fontsize-lg);
-            }
-        }
+
+    /* ————————————————————————————— 白板 ————————————————————————————————— */
+    & .excalidraw-container:not(.excalidraw--mobile) .App-menu_top .layer-ui__wrapper__top-right{
+      translate: -2rem 0;
     }
-}
+    & .orca-whiteboard-toolbar.orca-whiteboard-editing{
+      right: calc(var(--orca-spacing-md) + var(--orca-spacing-sm));
+      top: 2.5rem;
+      border:none;
+      box-shadow:var(--orca-shadow-list);
+      border-radius:var(--orca-radius-md);
+      padding:0;
+      &>.orca-button{
+          padding: var(--orca-spacing-sm) var(--orca-spacing-2xs);
+          font-size: var(--orca-fontsize-lg);
+      }
+    }
+  }
