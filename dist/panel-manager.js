@@ -8,10 +8,10 @@ let pluginName = ""
 let defaultBlockId = ""
 let enableAutoFocus = true
 let enableAutoCollapse = false
-let settingsWatcherUnSubscribe = null
 let rootRow = null // orca.state.panels 对应的 DOM 元素
 let dockedPanelCloseWatcher = null
-let dockedPanelIdUnSubscribe = null
+
+let unsubscribeList = []
 
 let disposeAutoCollapse = null
 
@@ -32,7 +32,7 @@ export async function start(name) {
     })
 
     // 禁止停靠面板的拖拽
-    dockedPanelIdUnSubscribe = window.Valtio.subscribe(window.pluginDockpanel.panel, () => {
+    unsubscribeList.push(window.Valtio.subscribe(window.pluginDockpanel.panel, () => {
         setTimeout(() => {
             const newDockedPanelId = window.pluginDockpanel.panel.id
             if (lastDockPanelId) {
@@ -47,7 +47,7 @@ export async function start(name) {
                 lastDockPanelId = newDockedPanelId
             }
         }, 150) // 确保DOM绘制完毕。
-    })
+    }))
 
     pluginName = name
     rootRow = document.querySelector("#main>.orca-panels-row")
@@ -63,6 +63,7 @@ export async function start(name) {
     // 监听停靠面板关闭事件
     setupDockedPanelCloseWatcher()
 
+    // 自动折叠
     if (enableAutoCollapse) disposeAutoCollapse = initAutoCollapseMonitor()
 }
 
@@ -78,12 +79,9 @@ export function cleanup() {
     // 清理停靠面板关闭监听器
     cleanupDockedPanelCloseWatcher()
 
-    cleanupSettingsWatcher()
-    // 清理停靠面板ID订阅
-    if (dockedPanelIdUnSubscribe) {
-        dockedPanelIdUnSubscribe()
-        dockedPanelIdUnSubscribe = null
-    }
+    // 清理订阅
+    unsubscribeList.forEach(us => us())
+    unsubscribeList.length = 0
 
     // 如果有停靠的面板，先取消停靠
     if (window.pluginDockpanel.panel.id) undockPanel()
@@ -359,60 +357,40 @@ function cleanupDockedPanelCloseWatcher() {
  * 设置设置变更监听器
  */
 function setupSettingsWatcher() {
-    if (settingsWatcherUnSubscribe) return
 
     // valtio 订阅设置变更
-    if (window.Valtio?.subscribe) {
-        settingsWatcherUnSubscribe = window.Valtio.subscribe(
-            orca.state.plugins[pluginName],
-            () => {
-                const settings = orca.state.plugins[pluginName]?.settings;
-                if (settings) {
-                    // 处理默认块ID设置变更
-                    const newDefaultBlockId = settings.pluginDockPanelDefaultBlockId || ""
-                    if (newDefaultBlockId !== defaultBlockId) {
-                        defaultBlockId = newDefaultBlockId
-                        console.log(`[dockpanel] 默认块ID设置已更新: ${defaultBlockId}`)
-                    }
+    unsubscribeList.push(window.Valtio.subscribe(orca.state.plugins[pluginName], () => {
+        const settings = orca.state.plugins[pluginName]?.settings;
+        if (settings) {
+            // 处理默认块ID设置变更
+            const newDefaultBlockId = settings.pluginDockPanelDefaultBlockId || ""
+            if (newDefaultBlockId !== defaultBlockId) {
+                defaultBlockId = newDefaultBlockId
+                console.log(`[dockpanel] 默认块ID设置已更新: ${defaultBlockId}`)
+            }
 
-                    // 处理自动聚焦设置变更
-                    const newAutoFocus = settings.enableAutoFocus
-                    if (newAutoFocus !== enableAutoFocus) {
-                        enableAutoFocus = newAutoFocus
-                        console.log(`[dockpanel] 自动聚焦设置已更新: ${enableAutoFocus}`)
-                    }
+            // 处理自动聚焦设置变更
+            const newAutoFocus = settings.enableAutoFocus
+            if (newAutoFocus !== enableAutoFocus) {
+                enableAutoFocus = newAutoFocus
+                console.log(`[dockpanel] 自动聚焦设置已更新: ${enableAutoFocus}`)
+            }
 
-                    // 处理停靠时的按钮发光效果
-                    settings.enableTextShadow ? document.body.classList.add("dockpanel-has-text-shadow") : document.body.classList.remove("dockpanel-has-text-shadow")
+            // 处理停靠时的按钮发光效果
+            settings.enableTextShadow ? document.body.classList.add("dockpanel-has-text-shadow") : document.body.classList.remove("dockpanel-has-text-shadow")
 
-                    // 自动隐藏
-                    const newAutoCollapse = settings.enableAutoCollapse
-                    if (newAutoCollapse) {
-                        disposeAutoCollapse = initAutoCollapseMonitor()
-                    } else {
-                        if (disposeAutoCollapse) {
-                            disposeAutoCollapse()
-                            disposeAutoCollapse = null
-                        }
-                    }
+            // 自动隐藏
+            const newAutoCollapse = settings.enableAutoCollapse
+            if (newAutoCollapse) {
+                disposeAutoCollapse = initAutoCollapseMonitor()
+            } else {
+                if (disposeAutoCollapse) {
+                    disposeAutoCollapse()
+                    disposeAutoCollapse = null
                 }
             }
-        )
-        console.log(`[dockpanel] ✅ 开始监听dockpanel设置变更`)
-    } else {
-        console.warn(`[dockpanel] valtio 不可用，设置变更监听器无法启动`)
-    }
-}
-
-/**
- * 清理设置变更监听器
- */
-function cleanupSettingsWatcher() {
-    if (settingsWatcherUnSubscribe) {
-        settingsWatcherUnSubscribe()
-        settingsWatcherUnSubscribe = null
-        console.log(`[dockpanel] 设置变更监听器已清理`)
-    }
+        }
+    }))
 }
 
 
@@ -428,11 +406,10 @@ export async function openInDockedpanel(blockId) {
         // 如果存在停靠面板，先确保展开，然后goTo
         if (window.pluginDockpanel.isCollapsed) toggleDockedPanel()
         orca.nav.goTo(target.view, target.viewArgs, dpid)
-        return
+    } else {
+        // 不存在则新起一个
+        createDockedPanel(blockId)
     }
-
-    // 不存在则新起一个
-    createDockedPanel(blockId)
 }
 
 
