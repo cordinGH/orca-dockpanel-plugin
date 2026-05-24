@@ -46,13 +46,24 @@ function registerCommands() {
       fn: panelManager.gotoDefaultBlockOnCurrentPanel,
       description: "[dockpanel] 在当前面板前往默认块"
     },
+
+    openInDockedpanel2: {
+      name: 'dockpanel.openInDockedpanel2',
+      fn() {
+        const selection = window.getSelection();
+        const cursorData = orca.utils.getCursorDataFromSelection(selection);
+        const blockId = cursorData?.focus?.blockId;
+        if (!blockId) return
+        panelManager.openInDockedpanel(blockId)
+      },
+      description: "[dockpanel] 在停靠面板打开当前光标所在块"
+    }
   }
 
   blockMenuCommand = 'dockpanel.openInDockedpanel'
 
   Object.values(commands).forEach(({name,fn,description}) => orca.commands.registerCommand(name, fn, description))
   
-  // 新功能，右键菜单直接打开停靠面板  2025年12月13日
   orca.blockMenuCommands.registerBlockMenuCommand(blockMenuCommand, {
     worksOnMultipleBlocks: false,
     render: (blockId, rootBlockId, close) => {
