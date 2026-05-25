@@ -163,15 +163,20 @@
     }
 
     /* ———————————————————————————— 优化dockpanel按钮在全屏块时的布局和谐度（与工具栏） —————————————————————————————————— */
+    /* 全屏块固定为灰色，以适配pdf、视频 */
+    & .orca-panels-row:not(.has-docked-panel) .orca-panel:has(.orca-maximized :is(.orca-pdf-toolbar, .orca-video-toolbar))::before {
+        color: #808080;
+    }
     & .orca-panel .orca-maximized {
 
         /* ———————————————————————————— video & pdf —————————————————————————————— */
+        &.orca-repr-epub-container .orca-epub-toolbar,
         &.orca-repr-pdf-container .orca-pdf-toolbar,
         &.orca-video-container .orca-video-toolbar {
             /* toolbar容器的padding模拟dockpanel按钮top偏移 */
             padding-top: .5rem;
             /* 为dockpanel按钮预留空间 */
-            padding-right: 3rem;
+            padding-right: 2.75rem;
 
             /* 子组件和dockpanel按钮的padding一致。 */
             & .orca-button {
