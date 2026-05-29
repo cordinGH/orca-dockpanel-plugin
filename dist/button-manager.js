@@ -96,16 +96,14 @@ function dockBtnHandler(e) {
     // 不在按钮区域
     if (!isPointerInBtn(e, rect)) return
 
-    e.preventDefault() // 消除中键圆圈
     e.stopPropagation()
 
-    // 左键切出/隐藏，右键停靠当前面板，中键取消停靠。
+    // 左键切出/隐藏，右键停靠当前面板，alt + 右键取消停靠。
     const eButton = e.button
     const dpid = target.dataset.panelId
     switch (eButton) {
         case 0: panelManager.toggleDockedPanel(); break;
-        case 1: panelManager.undockPanel(); break;
-        case 2: panelManager.dockPanel(dpid); break;
+        case 2: window.event?.altKey? panelManager.undockPanel() : panelManager.dockPanel(dpid); break;
     }
 }
 
@@ -136,7 +134,7 @@ function dockBtnMoveHandler(e) {
 
     // 仅在刚进入按钮区域时执行一次：定位并显示
     const { bthPositionRight, bthPositionTop, btnHeight, btnWidth} = btnInfo
-    tooltipEl.textContent = "左键　切出/隐藏\n右键　停靠当前\n中键　取消停靠"
+    tooltipEl.textContent = "    左键 　切出/隐藏\n    右键 　停靠当前\nAlt 右键　取消停靠"
     
     // fixed 定位（相对视口），置于按钮左侧
     tooltipEl.style.right = (window.innerWidth - rect.right + bthPositionRight * 2 + btnWidth) + "px"
