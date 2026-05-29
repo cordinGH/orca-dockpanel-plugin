@@ -26,6 +26,28 @@
 
 
 /* ———————————————————————————————————————————————————— */
+/* 右上角按钮的悬停提示框 */
+.orca-tooltip.dockpanel-tooltip {
+    position: fixed;
+    transform: translateX(4px);
+    white-space: pre-line;
+    line-height: 1.3;
+
+    /* 不挡点击，不触发事件 */
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s ease-out, transform .15s ease-out;
+    
+    /* 高于 dock 面板的 61 */
+    z-index: 62;
+}
+
+.dockpanel-tooltip.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* ———————————————————————————————————————————————————— */
 /* 修复因为orca-panel而导致官方的list背景不生效的问题 */
 /* orca-panel的背景色是为了在停靠时有一个更好的过渡效果 */
 .orca-query-list-block {
