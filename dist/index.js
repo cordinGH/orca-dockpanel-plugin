@@ -36,20 +36,27 @@ export async function unload() {
   untrackMainBorderRadius()
 }
 
-function recordBorderRadius() {
+function recordBorderRadius(e) {
+  // 初始无e；事件调用时只认 main 自身的圆角过渡，忽略子元素冒泡上来的（transitionrun 会冒泡）
+  if (e && e.target !== mainEl) return
   mainEl.style.setProperty("--dockedpanel-border-radius", getComputedStyle(mainEl).borderTopLeftRadius || "0px")
 }
 // 跟踪main元素的圆角变化
 function trackMainBorderRadius() {
   mainEl = document.getElementById('main')
+  if (!mainEl) return
   recordBorderRadius()
-  
+
   mainEl.style.transition = "border-radius 1ms";
-  mainEl.addEventListener("transitionrun", recordBorderRadius);
+  mainEl.addEventListener("transitionend", recordBorderRadius);
 }
 
 function untrackMainBorderRadius() {
-  mainEl.removeEventListener("transitionrun", recordBorderRadius);
+  if (!mainEl) return
+  mainEl.removeEventListener("transitionend", recordBorderRadius);
+  // 还原对 main 的副作用
+  mainEl.style.transition = "";
+  mainEl.style.removeProperty("--dockedpanel-border-radius");
   mainEl = null;
 }
 
