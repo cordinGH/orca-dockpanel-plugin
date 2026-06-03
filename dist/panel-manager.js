@@ -417,6 +417,46 @@ export async function openInDockedpanel(blockId) {
 // ************************************  issue 5 自动折叠****************************************************
 function initAutoCollapseMonitor() {
 
+    // 保存根面板的直接child
+    let panelClassWatchers = new Map()
+    const syncPanelClassWatchers = (mutations) => {
+        for (const mutation of mutations) {
+
+            // A. 为新的直接子面板绑定observer
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType !== Node.ELEMENT_NODE || !node.classList.contains('orca-panel')) return;
+                watchPanelClass(node);
+            });
+
+            // B. 为移除的直接子面板清理observer
+            mutation.removedNodes.forEach(node => {
+                if (node.nodeType !== Node.ELEMENT_NODE || !node.classList.contains('orca-panel')) return;
+
+                const panelId = node.dataset.panelId
+                const watcher = panelClassWatchers.get(panelId);
+                if (!watcher) return
+
+                watcher.disconnect();
+                panelClassWatchers.delete(panelId);
+            });
+        }
+    }
+
+    const watchPanelClass = (orcaPanelEl) => {
+        const {panelId} = orcaPanelEl.dataset;
+        
+        // 不存在panelId或者已经有观察器了则不重复绑定
+        if (!panelId || panelClassWatchers.has(panelId)) return;
+
+        const observer = new MutationObserver(evaluateAutoCollapse);
+        observer.observe(orcaPanelEl, {
+            attributes: true,
+            attributeFilter: ['class'],
+            attributeOldValue: true,
+        })
+        panelClassWatchers.set(panelId, observer);
+    }
+    
     // 处理面板的正常脱焦 => 当停靠面板的.active class被移除时，自动折叠。
     const evaluateAutoCollapse = (mutations) => {
         // 正在停靠面板或折叠的面板，则无需处理自动折叠。
@@ -440,37 +480,12 @@ function initAutoCollapseMonitor() {
         setCollapsed()
     };
 
-    // 保存根面板的直接child
-    let observerMap = new Map()
-    const syncPanelObservers = (mutations) => {
-        for (const mutation of mutations) {
-
-            // A. 为新的直接子面板绑定observer
-            mutation.addedNodes.forEach(node => node.nodeType === Node.ELEMENT_NODE && observePanel(node));
-
-            // B. 为移除的直接子面板清理observer
-            mutation.removedNodes.forEach(node => {
-                if (node.nodeType !== Node.ELEMENT_NODE) return
-                const observer = observerMap.get(node);
-                if (!observer) return
-                observer.disconnect();
-                observerMap.delete(node);
-            });
-        }
-    }
-
-    const observePanel = (element) => {
-        if (observerMap.has(element)) return
-
-        const observer = new MutationObserver(evaluateAutoCollapse);
-        observer.observe(element, { attributes: true, attributeFilter: ['class'], attributeOldValue: true, subtree: false })
-        observerMap.set(element, observer);
-    }
-
     // 观察根面板直接子面板，以处理停靠面板的脱焦
-    let rootRowObserver = new MutationObserver(syncPanelObservers);
-    rootRowObserver.observe(rootRow, { childList: true, subtree: false })
-    for (const node of [...rootRow.children]) observePanel(node); // 初始观察
+    let rootRowObserver = new MutationObserver(syncPanelClassWatchers);
+    rootRowObserver.observe(rootRow, { childList: true })
+    
+    // 为初始面板建立class观察器
+    rootRow.children.forEach(child => child.classList.contains('orca-panel') && watchPanelClass(child))
 
     // 销毁返回
     let disposed = false;
@@ -478,9 +493,9 @@ function initAutoCollapseMonitor() {
         // 销毁过了无需重复销毁
         if (disposed) return;
         disposed = true;
-        observerMap.values().forEach(o => o.disconnect())
-        observerMap.clear();
-        observerMap = null
+        panelClassWatchers.values().forEach(o => o.disconnect())
+        panelClassWatchers.clear();
+        panelClassWatchers = null
         rootRowObserver.disconnect();
         rootRowObserver = null
     };
