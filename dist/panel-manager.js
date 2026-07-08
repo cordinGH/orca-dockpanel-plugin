@@ -485,7 +485,9 @@ function initAutoCollapseMonitor() {
     rootRowObserver.observe(rootRow, { childList: true })
     
     // 为初始面板建立class观察器
-    rootRow.children.forEach(child => child.classList.contains('orca-panel') && watchPanelClass(child))
+    for (const child of rootRow.children) {
+        child => child.classList.contains('orca-panel') && watchPanelClass(child)
+    }
 
     // 销毁返回
     let disposed = false;
