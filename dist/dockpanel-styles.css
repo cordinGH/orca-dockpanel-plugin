@@ -240,4 +240,17 @@
 }
 
 /* ———————————————————————————————————————————— 思维导图按钮 ———————————————————————————————————————————————— */
-.orca-mindmap-header {translate: -1.35rem 0;}
+.orca-mindmap-header {translate: -2.5rem 0.1rem;}
+
+/* ———————————————————————————————————————————— 电子表格视图按钮 ———————————————————————————————————————————————— */
+.orca-spreadsheet-toolbar.orca-spreadsheet-editing {
+    translate: -2.5rem 0.55rem;
+    box-shadow: unset;
+    border: unset;
+    scale: 1.1;
+}
+
+/* ———————————————————————————————————————————— 块图谱的面板按钮 ———————————————————————————————————————————————— */
+.orca-panel-drag-handle:has(~.orca-block-graph) {
+    translate: -2rem -0.05rem !important;
+}
