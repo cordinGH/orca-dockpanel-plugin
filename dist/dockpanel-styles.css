@@ -240,7 +240,7 @@
 }
 
 /* ———————————————————————————————————————————— 思维导图按钮 ———————————————————————————————————————————————— */
-.orca-mindmap-header {translate: -2.5rem 0.1rem;}
+.orca-mindmap-header-actions {translate: -2rem 0rem;}
 
 /* ———————————————————————————————————————————— 电子表格视图按钮 ———————————————————————————————————————————————— */
 .orca-spreadsheet-toolbar.orca-spreadsheet-editing {
